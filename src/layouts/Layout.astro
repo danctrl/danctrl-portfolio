@@ -54,7 +54,7 @@ const {
 
         <!-- Center nav links -->
         <ul class="hidden items-center gap-8 text-sm text-gray-500 md:flex dark:text-gray-400">
-          <li><a href="#bio" class="transition-colors hover:text-[#1a1a1a] dark:hover:text-white">Bio</a></li>
+          <li><a href="#bio" class="transition-colors hover:text-[#1a1a1a] dark:hover:text-white">About</a></li>
           <li><a href="#projects" class="transition-colors hover:text-[#1a1a1a] dark:hover:text-white">Projects</a></li>
           <li><a href="#skills" class="transition-colors hover:text-[#1a1a1a] dark:hover:text-white">Skills</a></li>
           <li><a href="#contact" class="transition-colors hover:text-[#1a1a1a] dark:hover:text-white">Contact</a></li>
@@ -111,7 +111,7 @@ const {
       <!-- Mobile menu -->
       <div id="mobile-menu" class="hidden border-t border-gray-200 md:hidden dark:border-white/5">
         <ul class="flex flex-col gap-4 px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
-          <li><a href="#bio" class="transition-colors hover:text-[#1a1a1a] dark:hover:text-white">Bio</a></li>
+          <li><a href="#bio" class="transition-colors hover:text-[#1a1a1a] dark:hover:text-white">About</a></li>
           <li><a href="#projects" class="transition-colors hover:text-[#1a1a1a] dark:hover:text-white">Projects</a></li>
           <li><a href="#skills" class="transition-colors hover:text-[#1a1a1a] dark:hover:text-white">Skills</a></li>
           <li><a href="#contact" class="transition-colors hover:text-[#1a1a1a] dark:hover:text-white">Contact</a></li>
@@ -195,7 +195,10 @@ const {
         document.addEventListener("mousemove", (e) => {
           mouseX = e.clientX;
           mouseY = e.clientY;
-          if (!glow.classList.contains("is-active")) {
+          const overCard = e.target.closest(".section-card");
+          if (overCard) {
+            glow.classList.remove("is-active");
+          } else if (!glow.classList.contains("is-active")) {
             glow.classList.add("is-active");
           }
         });
