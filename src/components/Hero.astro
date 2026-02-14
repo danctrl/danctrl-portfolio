@@ -11,6 +11,18 @@ const titles = [
   <!-- Gradient background -->
   <div class="hero-gradient absolute inset-0 -z-10" aria-hidden="true"></div>
 
+  <!-- Floating geometric shapes (dark mode only) -->
+  <div class="pointer-events-none absolute inset-0 -z-10 hidden overflow-hidden dark:block" aria-hidden="true">
+    <!-- Circle -->
+    <div class="floating-shape absolute top-[15%] left-[10%] h-[60px] w-[60px] rounded-full border border-emerald-500/[0.06]" style="animation-duration: 20s;"></div>
+    <!-- Triangle -->
+    <svg class="floating-shape absolute top-[60%] right-[12%] h-[50px] w-[50px] text-emerald-500/[0.05]" style="animation-duration: 17s; animation-delay: -5s;" viewBox="0 0 50 50" fill="currentColor"><polygon points="25,5 45,45 5,45" /></svg>
+    <!-- Hexagon -->
+    <svg class="floating-shape absolute top-[30%] right-[25%] h-[40px] w-[40px] text-emerald-500/[0.04]" style="animation-duration: 23s; animation-delay: -10s;" viewBox="0 0 100 100" fill="currentColor"><polygon points="50,3 97,25 97,75 50,97 3,75 3,25" /></svg>
+    <!-- Small circle -->
+    <div class="floating-shape absolute bottom-[20%] left-[30%] h-[30px] w-[30px] rounded-full bg-emerald-500/[0.03]" style="animation-duration: 25s; animation-delay: -8s;"></div>
+  </div>
+
   <div class="mx-auto max-w-5xl px-6 py-24 text-center md:text-left">
     <!-- Status indicator -->
     <div class="mb-8 inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white/50 px-4 py-1.5 text-sm text-gray-600 backdrop-blur-sm dark:border-white/10 dark:bg-white/5 dark:text-gray-400">

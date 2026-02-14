@@ -1,0 +1,90 @@
+---
+const experiences = [
+  {
+    title: "Freelance Technologist",
+    company: "",
+    period: "Mar 2023 – Present",
+    highlights: [
+      "Self-hosted homelab with Podman on RHEL, containerization & reverse proxy (Traefik)",
+      "Home Assistant smart home automation in KVM VM",
+      "Hugo portfolio site with CI/CD pipeline",
+    ],
+    featured: false,
+  },
+  {
+    title: "Technical Specialist",
+    company: "Apple",
+    period: "Oct 2021 – Jan 2023",
+    highlights: [
+      "Hardware and software troubleshooting at the Genius Bar",
+      "Delivered technical support to a high volume of daily customers",
+    ],
+    featured: false,
+  },
+  {
+    title: "Public Support Specialist",
+    company: "Foundever",
+    period: "Jan 2021 – Sep 2021",
+    highlights: [
+      "NRW COVID-19 vaccination hotline, handling 75+ callers daily",
+      "Provided clear guidance under high-pressure conditions",
+    ],
+    featured: false,
+  },
+  {
+    title: "Social Media Manager",
+    company: "nussknagger GmbH",
+    period: "Nov 2020 – Jan 2021",
+    highlights: [
+      "Planned and executed social media campaigns",
+      "Lead generation and content strategy",
+    ],
+    featured: false,
+  },
+  {
+    title: "Project Manager",
+    company: "JobTender24 GmbH",
+    period: "Jul 2018 – Oct 2019",
+    highlights: [
+      "Managed recruitment projects and optimized internal processes",
+      "Scaled candidate pipeline through structured workflows",
+    ],
+    featured: false,
+  },
+];
+---
+
+<section id="experience" class="py-24">
+  <div class="mx-auto max-w-5xl px-6">
+    <h2 class="fade-in mb-12 font-mono text-2xl font-bold text-[#1a1a1a] dark:text-white">Experience</h2>
+
+    <div class="relative ml-4 border-l border-[rgba(5,150,105,0.15)] dark:border-[rgba(16,185,129,0.2)]">
+      {experiences.map((exp, i) => (
+        <div class="timeline-entry fade-in relative mb-10 pl-8 last:mb-0" style={`transition-delay: ${i * 150}ms`}>
+          <!-- Timeline dot -->
+          <div class="timeline-dot absolute -left-[7px] top-1.5 h-3.5 w-3.5 rounded-full border-2 border-gray-300 bg-[#f7f7f5] dark:border-gray-600 dark:bg-[#0a0a0a]" />
+
+          <div class="section-card p-5">
+            <div class="mb-2 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+              <h3 class="font-semibold text-[#1a1a1a] dark:text-white">
+                {exp.title}
+                {exp.company && (
+                  <span class="font-normal text-gray-500 dark:text-gray-400"> &ndash; {exp.company}</span>
+                )}
+              </h3>
+              <span class="text-sm text-gray-400 dark:text-gray-500">{exp.period}</span>
+            </div>
+            <ul class="space-y-1 text-sm text-gray-500 dark:text-gray-400">
+              {exp.highlights.map((h) => (
+                <li class="flex gap-2">
+                  <span class="mt-1.5 h-1 w-1 flex-shrink-0 rounded-full bg-gray-300 dark:bg-gray-600" />
+                  {h}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
