@@ -93,45 +93,62 @@ html.theme-transition *::after {
   box-shadow: 0 4px 12px rgba(16, 185, 129, 0.1), 0 8px 24px rgba(0, 0, 0, 0.2);
 }
 
-/* Social link buttons – sweep hover */
-.social-btn {
-  position: relative;
-  overflow: hidden;
-  background-color: #f3f4f6;
-  color: #374151;
-  z-index: 0;
-  transition: color 0.3s ease;
+/* Primary button (Download CV, About Me) */
+.btn-primary {
+  background-color: #059669;
+  color: #ffffff;
+  font-weight: 600;
+  transition: background-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-.social-btn::before {
+.btn-primary:hover {
+  background-color: #047857;
+  box-shadow: 0 4px 12px rgba(5, 150, 105, 0.25);
+}
+
+/* Secondary button – sweep hover (Browse Projects, social links) */
+.btn-secondary {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid #d1d5db;
+  color: #374151;
+  background-color: transparent;
+  z-index: 0;
+  transition: color 0.3s ease, border-color 0.3s ease;
+}
+
+.btn-secondary::before {
   content: "";
   position: absolute;
   inset: 0;
   z-index: -1;
-  background: #10b981;
+  background: #000000;
   transform: translateX(-100%);
   transition: transform 0.3s ease;
 }
 
-.social-btn:hover {
+.btn-secondary:hover {
   color: #ffffff;
+  border-color: #000000;
 }
 
-.social-btn:hover::before {
+.btn-secondary:hover::before {
   transform: translateX(0);
 }
 
-.dark .social-btn {
-  background-color: #1f2937;
+.dark .btn-secondary {
+  border-color: rgba(255, 255, 255, 0.1);
   color: #d1d5db;
+  background-color: transparent;
 }
 
-.dark .social-btn::before {
-  background: #059669;
+.dark .btn-secondary::before {
+  background: #ffffff;
 }
 
-.dark .social-btn:hover {
-  color: #ffffff;
+.dark .btn-secondary:hover {
+  color: #000000;
+  border-color: #ffffff;
 }
 
 /* Timeline dot hover glow */
