@@ -1,0 +1,62 @@
+---
+const education = [
+  {
+    title: "B.A. Business Administration",
+    institution: "Berlin School of Economics and Law (HWR Berlin)",
+    period: "Apr 2024 – Present",
+    highlights: [
+      "Bridging business strategy with technical systems thinking",
+    ],
+  },
+  {
+    title: "Full-Stack Web Developer",
+    institution: "Le Wagon",
+    period: "Nov 2023",
+    highlights: [
+      "HTML, CSS, Bootstrap, JavaScript, SQL, Git, Ruby on Rails",
+      "Final project: my kita – web app helping Berlin parents find kindergartens",
+    ],
+  },
+  {
+    title: "English Language Correspondent",
+    institution: "IHK zu Lippe Detmold",
+    period: "Mar 2016",
+    highlights: [
+      "Professional business English certification",
+    ],
+  },
+];
+---
+
+<section id="education" class="py-24">
+  <div class="mx-auto max-w-5xl px-6">
+    <h2 class="fade-in mb-12 font-mono text-2xl font-bold text-[#1a1a1a] dark:text-white">Education & Certifications</h2>
+
+    <div class="relative ml-4 border-l border-[rgba(5,150,105,0.15)] dark:border-[rgba(16,185,129,0.2)]">
+      {education.map((edu, i) => (
+        <div class="timeline-entry fade-in relative mb-10 pl-8 last:mb-0" style={`transition-delay: ${i * 150}ms`}>
+          <!-- Timeline dot -->
+          <div class="timeline-dot absolute -left-[7px] top-1.5 h-3.5 w-3.5 rounded-full border-2 border-gray-300 bg-[#f7f7f5] dark:border-gray-600 dark:bg-[#0a0a0a]" />
+
+          <div class="section-card p-5">
+            <div class="mb-2 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+              <h3 class="font-semibold text-[#1a1a1a] dark:text-white">
+                {edu.title}
+                <span class="font-normal text-gray-500 dark:text-gray-400"> &ndash; {edu.institution}</span>
+              </h3>
+              <span class="flex-shrink-0 text-sm text-gray-400 dark:text-gray-500">{edu.period}</span>
+            </div>
+            <ul class="space-y-1 text-sm text-gray-500 dark:text-gray-400">
+              {edu.highlights.map((h) => (
+                <li class="flex gap-2">
+                  <span class="mt-1.5 h-1 w-1 flex-shrink-0 rounded-full bg-gray-300 dark:bg-gray-600" />
+                  {h}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>

@@ -1,109 +1,157 @@
 ---
 const titles = [
-  "DevOps Engineer",
-  "System Administrator",
-  "Cybersecurity Enthusiast",
-  "AI Explorer",
+    "DevOps Engineer",
+    "System Administrator",
+    "Cybersecurity Enthusiast",
+    "AI Explorer",
 ];
 ---
 
 <section class="relative flex min-h-screen items-center overflow-hidden pt-16">
-  <!-- Gradient background -->
-  <div class="hero-gradient absolute inset-0 -z-10" aria-hidden="true"></div>
+    <!-- Gradient background -->
+    <div class="hero-gradient absolute inset-0 -z-10" aria-hidden="true"></div>
 
-  <!-- Floating geometric shapes (dark mode only) -->
-  <div class="pointer-events-none absolute inset-0 -z-10 hidden overflow-hidden dark:block" aria-hidden="true">
-    <!-- Circle -->
-    <div class="floating-shape absolute top-[15%] left-[10%] h-[60px] w-[60px] rounded-full border border-emerald-500/[0.06]" style="animation-duration: 20s;"></div>
-    <!-- Triangle -->
-    <svg class="floating-shape absolute top-[60%] right-[12%] h-[50px] w-[50px] text-emerald-500/[0.05]" style="animation-duration: 17s; animation-delay: -5s;" viewBox="0 0 50 50" fill="currentColor"><polygon points="25,5 45,45 5,45" /></svg>
-    <!-- Hexagon -->
-    <svg class="floating-shape absolute top-[30%] right-[25%] h-[40px] w-[40px] text-emerald-500/[0.04]" style="animation-duration: 23s; animation-delay: -10s;" viewBox="0 0 100 100" fill="currentColor"><polygon points="50,3 97,25 97,75 50,97 3,75 3,25" /></svg>
-    <!-- Small circle -->
-    <div class="floating-shape absolute bottom-[20%] left-[30%] h-[30px] w-[30px] rounded-full bg-emerald-500/[0.03]" style="animation-duration: 25s; animation-delay: -8s;"></div>
-  </div>
-
-  <div class="mx-auto max-w-5xl px-6 py-24 text-center md:text-left">
-    <!-- Status indicator -->
-    <div class="mb-8 inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white/50 px-4 py-1.5 text-sm text-gray-600 backdrop-blur-sm dark:border-white/10 dark:bg-white/5 dark:text-gray-400">
-      <span class="relative flex h-2 w-2">
-        <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
-        <span class="relative inline-flex h-2 w-2 rounded-full bg-emerald-500"></span>
-      </span>
-      Open for opportunities
+    <!-- Floating geometric shapes (dark mode only) -->
+    <div
+        class="pointer-events-none absolute inset-0 -z-10 hidden overflow-hidden dark:block"
+        aria-hidden="true"
+    >
+        <!-- Circle -->
+        <div
+            class="floating-shape absolute top-[15%] left-[10%] h-[60px] w-[60px] rounded-full border border-emerald-500/[0.06]"
+            style="animation-duration: 20s;"
+        >
+        </div>
+        <!-- Triangle -->
+        <svg
+            class="floating-shape absolute top-[60%] right-[12%] h-[50px] w-[50px] text-emerald-500/[0.05]"
+            style="animation-duration: 17s; animation-delay: -5s;"
+            viewBox="0 0 50 50"
+            fill="currentColor"
+            ><polygon points="25,5 45,45 5,45"></polygon></svg
+        >
+        <!-- Hexagon -->
+        <svg
+            class="floating-shape absolute top-[30%] right-[25%] h-[40px] w-[40px] text-emerald-500/[0.04]"
+            style="animation-duration: 23s; animation-delay: -10s;"
+            viewBox="0 0 100 100"
+            fill="currentColor"
+            ><polygon points="50,3 97,25 97,75 50,97 3,75 3,25"></polygon></svg
+        >
+        <!-- Small circle -->
+        <div
+            class="floating-shape absolute bottom-[20%] left-[30%] h-[30px] w-[30px] rounded-full bg-emerald-500/[0.03]"
+            style="animation-duration: 25s; animation-delay: -8s;"
+        >
+        </div>
     </div>
 
-    <!-- Headline -->
-    <h1 class="mb-6 font-mono text-3xl font-bold leading-tight tracking-tight text-[#1a1a1a] sm:text-4xl lg:text-5xl dark:text-white">
-      Documenting the journey<br />of building infrastructure
-    </h1>
+    <div class="mx-auto max-w-5xl px-6 py-24 text-center md:text-left">
+        <!-- Status indicator -->
+        <div
+            class="mb-8 inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white/50 px-4 py-1.5 text-sm text-gray-600 backdrop-blur-sm dark:border-white/10 dark:bg-white/5 dark:text-gray-400"
+        >
+            <span class="relative flex h-2 w-2">
+                <span
+                    class="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"
+                ></span>
+                <span
+                    class="relative inline-flex h-2 w-2 rounded-full bg-emerald-500"
+                ></span>
+            </span>
+            Available for hire
+        </div>
 
-    <!-- Typing subtitle -->
-    <div class="mb-4 flex h-8 items-center justify-center text-lg text-gray-500 sm:text-xl md:justify-start dark:text-gray-400">
-      <span id="typing-text" aria-label={titles.join(", ")}></span><span class="typing-cursor text-emerald-500">|</span>
+        <!-- Headline -->
+        <h1
+            class="mb-6 font-mono text-3xl font-bold leading-tight tracking-tight text-[#1a1a1a] sm:text-4xl lg:text-5xl dark:text-white"
+        >
+            Documenting the journey<br />of building infrastructure
+        </h1>
+
+        <!-- Typing subtitle -->
+        <div
+            class="mb-4 flex h-8 items-center justify-center text-lg text-gray-500 sm:text-xl md:justify-start dark:text-gray-400"
+        >
+            <span id="typing-text" aria-label={titles.join(", ")}></span><span
+                class="typing-cursor text-emerald-500">|</span
+            >
+        </div>
+
+        <!-- Description -->
+        <p
+            class="mx-auto mb-10 max-w-2xl text-lg text-gray-500 md:mx-0 dark:text-gray-400"
+        >
+            DevOps enthusiast based in Berlin, bridging technical systems with
+            business understanding.
+        </p>
+
+        <!-- CTAs -->
+        <div
+            class="flex flex-col items-center justify-center gap-4 sm:flex-row md:justify-start"
+        >
+            <a
+                href="#bio"
+                class="inline-flex items-center gap-2 rounded-lg bg-emerald-500 px-6 py-3 text-sm font-semibold text-white transition-all hover:bg-emerald-400 hover:shadow-lg hover:shadow-emerald-500/25"
+            >
+                About me
+                <svg
+                    class="h-4 w-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                >
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+                </svg>
+            </a>
+            <a
+                href="#projects"
+                class="inline-flex items-center rounded-lg border border-gray-300 px-6 py-3 text-sm font-semibold text-gray-700 transition-all hover:border-gray-400 hover:text-[#1a1a1a] dark:border-white/10 dark:text-gray-300 dark:hover:border-white/25 dark:hover:text-white"
+            >
+                Browse Projects
+            </a>
+        </div>
     </div>
-
-    <!-- Description -->
-    <p class="mx-auto mb-10 max-w-2xl text-lg text-gray-500 md:mx-0 dark:text-gray-400">
-      DevOps enthusiast based in Berlin, bridging technical systems with business understanding.
-    </p>
-
-    <!-- CTAs -->
-    <div class="flex flex-col items-center justify-center gap-4 sm:flex-row md:justify-start">
-      <a
-        href="#bio"
-        class="inline-flex items-center gap-2 rounded-lg bg-emerald-500 px-6 py-3 text-sm font-semibold text-white transition-all hover:bg-emerald-400 hover:shadow-lg hover:shadow-emerald-500/25"
-      >
-        About me
-        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
-        </svg>
-      </a>
-      <a
-        href="#projects"
-        class="inline-flex items-center rounded-lg border border-gray-300 px-6 py-3 text-sm font-semibold text-gray-700 transition-all hover:border-gray-400 hover:text-[#1a1a1a] dark:border-white/10 dark:text-gray-300 dark:hover:border-white/25 dark:hover:text-white"
-      >
-        Browse Projects
-      </a>
-    </div>
-
-  </div>
 </section>
 
 <script define:vars={{ titles }}>
-  const el = document.getElementById("typing-text");
-  if (el) {
-    let titleIndex = 0;
-    let charIndex = 0;
-    let deleting = false;
-    const typeSpeed = 80;
-    const deleteSpeed = 40;
-    const pauseAfterType = 2000;
-    const pauseAfterDelete = 500;
+    const el = document.getElementById("typing-text");
+    if (el) {
+        let titleIndex = 0;
+        let charIndex = 0;
+        let deleting = false;
+        const typeSpeed = 80;
+        const deleteSpeed = 40;
+        const pauseAfterType = 2000;
+        const pauseAfterDelete = 500;
 
-    function tick() {
-      const current = titles[titleIndex];
-      if (!deleting) {
-        el.textContent = current.slice(0, charIndex + 1);
-        charIndex++;
-        if (charIndex === current.length) {
-          deleting = true;
-          setTimeout(tick, pauseAfterType);
-          return;
+        function tick() {
+            const current = titles[titleIndex];
+            if (!deleting) {
+                el.textContent = current.slice(0, charIndex + 1);
+                charIndex++;
+                if (charIndex === current.length) {
+                    deleting = true;
+                    setTimeout(tick, pauseAfterType);
+                    return;
+                }
+                setTimeout(tick, typeSpeed);
+            } else {
+                el.textContent = current.slice(0, charIndex - 1);
+                charIndex--;
+                if (charIndex === 0) {
+                    deleting = false;
+                    titleIndex = (titleIndex + 1) % titles.length;
+                    setTimeout(tick, pauseAfterDelete);
+                    return;
+                }
+                setTimeout(tick, deleteSpeed);
+            }
         }
-        setTimeout(tick, typeSpeed);
-      } else {
-        el.textContent = current.slice(0, charIndex - 1);
-        charIndex--;
-        if (charIndex === 0) {
-          deleting = false;
-          titleIndex = (titleIndex + 1) % titles.length;
-          setTimeout(tick, pauseAfterDelete);
-          return;
-        }
-        setTimeout(tick, deleteSpeed);
-      }
+        tick();
     }
-    tick();
-  }
 </script>
