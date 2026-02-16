@@ -1,0 +1,40 @@
+---
+const categories = [
+  {
+    label: "DevOps & Infrastructure",
+    skills: ["Podman", "Docker", "Traefik", "Ansible", "Linux (RHEL)", "KVM", "CI/CD", "GitHub Actions", "Cloudflare"],
+  },
+  {
+    label: "Development",
+    skills: ["Python", "JavaScript", "TypeScript", "Ruby on Rails", "HTML/CSS", "Astro", "Tailwind CSS", "SQL", "Git"],
+  },
+  {
+    label: "Security & Networking",
+    skills: ["Network Security", "Firewalls", "VPN", "SSH", "TLS/SSL", "OWASP", "Threat Modeling"],
+  },
+  {
+    label: "Business & Tools",
+    skills: ["Project Management", "Agile", "Jira", "Confluence", "Figma", "Technical Writing"],
+  },
+];
+---
+
+<section id="skills" class="py-24">
+  <div class="mx-auto max-w-5xl px-6">
+    <h2 class="fade-in mb-12 font-mono text-2xl font-bold text-[#1a1a1a] dark:text-white">Skills</h2>
+    <div class="fade-in grid grid-cols-1 gap-8 sm:grid-cols-2">
+      {categories.map((cat) => (
+        <div>
+          <p class="mb-3 text-xs font-medium uppercase tracking-wide text-gray-400">{cat.label}</p>
+          <div class="flex flex-wrap gap-2">
+            {cat.skills.map((skill) => (
+              <span class="glass rounded-full px-3 py-1 text-sm text-gray-600 dark:text-gray-400">
+                {skill}
+              </span>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
