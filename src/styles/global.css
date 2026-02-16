@@ -24,6 +24,7 @@
 
 /* Theme custom properties */
 @theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, monospace;
 }
 
@@ -68,11 +69,26 @@ html.theme-transition *::after {
     radial-gradient(ellipse 60% 50% at 30% 60%, rgba(5, 150, 105, 0.03) 0%, transparent 70%);
 }
 
+/* Glassmorphism utility */
+.glass {
+  background-color: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(0, 0, 0, 0.04);
+}
+
+.dark .glass {
+  background-color: rgba(255, 255, 255, 0.02);
+  border-color: rgba(255, 255, 255, 0.06);
+}
+
 /* Section card style */
 .section-card {
-  border: 1px solid rgba(209, 213, 219, 0.5);
   border-radius: 0.75rem;
-  background-color: #ffffff;
+  background-color: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(0, 0, 0, 0.04);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 4px 12px rgba(0, 0, 0, 0.04);
   transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
@@ -83,8 +99,8 @@ html.theme-transition *::after {
 }
 
 .dark .section-card {
-  border-color: rgba(55, 65, 81, 0.3);
-  background-color: #161b22;
+  background-color: rgba(255, 255, 255, 0.02);
+  border-color: rgba(255, 255, 255, 0.06);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3), 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
@@ -93,10 +109,11 @@ html.theme-transition *::after {
   box-shadow: 0 4px 12px rgba(16, 185, 129, 0.1), 0 8px 24px rgba(0, 0, 0, 0.2);
 }
 
-/* Primary button (Download CV, About Me) */
+/* Primary button (About Me) */
 .btn-primary {
   background-color: #059669;
   color: #ffffff;
+  font-family: var(--font-sans);
   font-weight: 600;
   transition: background-color 0.2s ease, box-shadow 0.2s ease;
 }
@@ -106,13 +123,49 @@ html.theme-transition *::after {
   box-shadow: 0 4px 12px rgba(5, 150, 105, 0.25);
 }
 
+/* Download CV button – shrink to icon */
+.btn-cv {
+  background-color: #059669;
+  font-family: var(--font-sans);
+  transition: width 0.3s ease, background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.btn-cv-wrap:hover .btn-cv {
+  width: 40px !important;
+  background-color: #047857;
+  box-shadow: 0 4px 12px rgba(5, 150, 105, 0.25);
+}
+
+.btn-cv-text {
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.btn-cv-wrap:hover .btn-cv-text {
+  opacity: 0;
+  transform: translateY(-200%);
+}
+
+.btn-cv-icon {
+  opacity: 0;
+  transform: translateY(200%);
+  transition: opacity 0.2s ease 0.1s, transform 0.2s ease 0.1s;
+}
+
+.btn-cv-wrap:hover .btn-cv-icon {
+  opacity: 1;
+  transform: translateY(0);
+}
+
 /* Secondary button – sweep hover (Browse Projects, social links) */
 .btn-secondary {
   position: relative;
   overflow: hidden;
-  border: 1px solid #d1d5db;
+  border: 1px solid rgba(0, 0, 0, 0.04);
+  background-color: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
   color: #374151;
-  background-color: transparent;
+  font-family: var(--font-sans);
   z-index: 0;
   transition: color 0.3s ease, border-color 0.3s ease;
 }
@@ -120,8 +173,9 @@ html.theme-transition *::after {
 .btn-secondary::before {
   content: "";
   position: absolute;
-  inset: 0;
+  inset: -1px;
   z-index: -1;
+  border-radius: inherit;
   background: #000000;
   transform: translateX(-100%);
   transition: transform 0.3s ease;
@@ -129,7 +183,7 @@ html.theme-transition *::after {
 
 .btn-secondary:hover {
   color: #ffffff;
-  border-color: #000000;
+  border-color: transparent;
 }
 
 .btn-secondary:hover::before {
@@ -137,9 +191,9 @@ html.theme-transition *::after {
 }
 
 .dark .btn-secondary {
-  border-color: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.06);
   color: #d1d5db;
-  background-color: transparent;
+  background-color: rgba(255, 255, 255, 0.02);
 }
 
 .dark .btn-secondary::before {
@@ -148,7 +202,7 @@ html.theme-transition *::after {
 
 .dark .btn-secondary:hover {
   color: #000000;
-  border-color: #ffffff;
+  border-color: transparent;
 }
 
 /* Timeline dot hover glow */
@@ -218,6 +272,63 @@ html.theme-transition *::after {
 
 .floating-shape {
   animation: float-drift 20s ease-in-out infinite;
+}
+
+/* Nav link – hover: underline grows in */
+.nav-link {
+  position: relative;
+  padding-bottom: 2px;
+  transition: color 0.2s ease;
+}
+
+.nav-link::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -2px;
+  width: 0;
+  height: 1.5px;
+  background-color: currentColor;
+  border-radius: 1px;
+  transition: width 0.3s ease, left 0.3s ease;
+  opacity: 0.4;
+}
+
+.nav-link:hover {
+  color: #1a1a1a;
+}
+
+.nav-link:hover::after {
+  width: 100%;
+  left: 0;
+}
+
+.dark .nav-link:hover {
+  color: #ffffff;
+}
+
+/* Nav link – active: emerald dot + emerald text */
+.nav-link.active {
+  color: #059669;
+}
+
+.nav-link.active::after {
+  width: 4px;
+  height: 4px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background-color: #059669;
+  opacity: 1;
+  bottom: -6px;
+}
+
+.dark .nav-link.active {
+  color: #10b981;
+}
+
+.dark .nav-link.active::after {
+  background-color: #10b981;
 }
 
 /* Typing cursor blink */
