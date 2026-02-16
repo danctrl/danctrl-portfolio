@@ -11,37 +11,38 @@ const titles = [
     <!-- Gradient background -->
     <div class="hero-gradient absolute inset-0 -z-10" aria-hidden="true"></div>
 
-    <!-- Floating geometric shapes (dark mode only) -->
+    <!-- Floating geometric shapes (dark mode only, interactive) -->
     <div
-        class="pointer-events-none absolute inset-0 -z-10 hidden overflow-hidden dark:block"
+        id="shapes-container"
+        class="pointer-events-none absolute inset-0 z-10 hidden overflow-hidden dark:block"
         aria-hidden="true"
     >
         <!-- Circle -->
         <div
-            class="floating-shape absolute top-[15%] left-[10%] h-[60px] w-[60px] rounded-full border border-emerald-500/[0.06]"
-            style="animation-duration: 20s;"
+            class="floating-shape draggable-shape pointer-events-auto absolute top-[15%] left-[10%] h-[60px] w-[60px] cursor-grab rounded-full border border-emerald-500/20"
+            style="animation-duration: 10s;"
         >
         </div>
         <!-- Triangle -->
         <svg
-            class="floating-shape absolute top-[60%] right-[12%] h-[50px] w-[50px] text-emerald-500/[0.05]"
-            style="animation-duration: 17s; animation-delay: -5s;"
+            class="floating-shape draggable-shape pointer-events-auto absolute top-[60%] right-[12%] h-[50px] w-[50px] cursor-grab text-emerald-500/15"
+            style="animation-duration: 8s; animation-delay: -3s;"
             viewBox="0 0 50 50"
             fill="currentColor"
             ><polygon points="25,5 45,45 5,45"></polygon></svg
         >
         <!-- Hexagon -->
         <svg
-            class="floating-shape absolute top-[30%] right-[25%] h-[40px] w-[40px] text-emerald-500/[0.04]"
-            style="animation-duration: 23s; animation-delay: -10s;"
+            class="floating-shape draggable-shape pointer-events-auto absolute top-[30%] right-[25%] h-[40px] w-[40px] cursor-grab text-emerald-500/10"
+            style="animation-duration: 12s; animation-delay: -5s;"
             viewBox="0 0 100 100"
             fill="currentColor"
             ><polygon points="50,3 97,25 97,75 50,97 3,75 3,25"></polygon></svg
         >
         <!-- Small circle -->
         <div
-            class="floating-shape absolute bottom-[20%] left-[30%] h-[30px] w-[30px] rounded-full bg-emerald-500/[0.03]"
-            style="animation-duration: 25s; animation-delay: -8s;"
+            class="floating-shape draggable-shape pointer-events-auto absolute bottom-[20%] left-[30%] h-[30px] w-[30px] cursor-grab rounded-full bg-emerald-500/10"
+            style="animation-duration: 13s; animation-delay: -4s;"
         >
         </div>
     </div>
@@ -145,4 +146,78 @@ const titles = [
         }
         tick();
     }
+</script>
+
+<script>
+    // Interactive drag & throw for floating shapes
+    document.querySelectorAll(".draggable-shape").forEach((shape) => {
+        let isDragging = false;
+        let offsetX = 0;
+        let offsetY = 0;
+        let velX = 0;
+        let velY = 0;
+        let lastX = 0;
+        let lastY = 0;
+        let lastTime = 0;
+        let animFrame = 0;
+
+        shape.addEventListener("mousedown", (e) => {
+            isDragging = true;
+            shape.style.animationPlayState = "paused";
+            shape.style.cursor = "grabbing";
+            const rect = shape.getBoundingClientRect();
+            offsetX = e.clientX - rect.left - rect.width / 2;
+            offsetY = e.clientY - rect.top - rect.height / 2;
+            lastX = e.clientX;
+            lastY = e.clientY;
+            lastTime = Date.now();
+            velX = 0;
+            velY = 0;
+            cancelAnimationFrame(animFrame);
+            e.preventDefault();
+        });
+
+        document.addEventListener("mousemove", (e) => {
+            if (!isDragging) return;
+            const container = shape.parentElement;
+            const cRect = container.getBoundingClientRect();
+            const x = e.clientX - cRect.left - offsetX - shape.offsetWidth / 2;
+            const y = e.clientY - cRect.top - offsetY - shape.offsetHeight / 2;
+            shape.style.left = x + "px";
+            shape.style.top = y + "px";
+            shape.style.right = "auto";
+            shape.style.bottom = "auto";
+
+            const now = Date.now();
+            const dt = now - lastTime || 1;
+            velX = (e.clientX - lastX) / dt * 16;
+            velY = (e.clientY - lastY) / dt * 16;
+            lastX = e.clientX;
+            lastY = e.clientY;
+            lastTime = now;
+        });
+
+        document.addEventListener("mouseup", () => {
+            if (!isDragging) return;
+            isDragging = false;
+            shape.style.cursor = "grab";
+
+            // Throw with momentum, then drift back to float animation
+            const friction = 0.95;
+            function drift() {
+                if (Math.abs(velX) < 0.1 && Math.abs(velY) < 0.1) {
+                    shape.style.animationPlayState = "running";
+                    return;
+                }
+                const currentLeft = parseFloat(shape.style.left) || 0;
+                const currentTop = parseFloat(shape.style.top) || 0;
+                shape.style.left = (currentLeft + velX) + "px";
+                shape.style.top = (currentTop + velY) + "px";
+                velX *= friction;
+                velY *= friction;
+                animFrame = requestAnimationFrame(drift);
+            }
+            drift();
+        });
+    });
 </script>

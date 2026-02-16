@@ -24,7 +24,7 @@
 
 /* Theme custom properties */
 @theme {
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Poppins", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, monospace;
 }
 
@@ -54,7 +54,7 @@ html.theme-transition *::after {
 
 /* Dot grid background – light mode only */
 :root:not(.dark) .dot-grid {
-  background-image: radial-gradient(circle, rgba(0, 0, 0, 0.07) 1px, transparent 1px);
+  background-image: radial-gradient(circle, rgba(0, 0, 0, 0.15) 1px, transparent 1px);
   background-size: 22px 22px;
 }
 
@@ -74,7 +74,7 @@ html.theme-transition *::after {
   background-color: rgba(255, 255, 255, 0.6);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
-  border: 1px solid rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(0, 0, 0, 0.12);
 }
 
 .dark .glass {
@@ -93,9 +93,14 @@ html.theme-transition *::after {
   transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
+.section-card:not(.section-card--static) {
+  transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
+}
+
 .section-card:not(.section-card--static):hover {
-  border-color: rgba(16, 185, 129, 0.3);
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.1), 0 8px 24px rgba(0, 0, 0, 0.08);
+  border-color: rgba(16, 185, 129, 0.5);
+  box-shadow: 0 0 40px rgba(16, 185, 129, 0.15), 0 10px 40px rgba(0, 0, 0, 0.08);
+  transform: translateY(-4px);
 }
 
 .dark .section-card {
@@ -105,16 +110,18 @@ html.theme-transition *::after {
 }
 
 .dark .section-card:not(.section-card--static):hover {
-  border-color: rgba(16, 185, 129, 0.25);
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.1), 0 8px 24px rgba(0, 0, 0, 0.2);
+  border-color: rgba(16, 185, 129, 0.5);
+  box-shadow: 0 0 30px rgba(16, 185, 129, 0.2), 0 10px 40px rgba(0, 0, 0, 0.3);
+  transform: translateY(-4px);
 }
 
 /* Primary button (About Me) */
 .btn-primary {
   background-color: #059669;
   color: #ffffff;
-  font-family: var(--font-sans);
+  font-family: var(--font-mono);
   font-weight: 600;
+  letter-spacing: 0.02em;
   transition: background-color 0.2s ease, box-shadow 0.2s ease;
 }
 
@@ -126,7 +133,8 @@ html.theme-transition *::after {
 /* Download CV button – shrink to icon */
 .btn-cv {
   background-color: #059669;
-  font-family: var(--font-sans);
+  font-family: var(--font-mono);
+  letter-spacing: 0.02em;
   transition: width 0.3s ease, background-color 0.3s ease, box-shadow 0.3s ease;
 }
 
@@ -137,37 +145,57 @@ html.theme-transition *::after {
 }
 
 .btn-cv-text {
-  transition: opacity 0.2s ease, transform 0.2s ease;
+  transition: opacity 0.15s ease 0.2s, transform 0.15s ease 0.2s;
 }
 
 .btn-cv-wrap:hover .btn-cv-text {
   opacity: 0;
-  transform: translateY(-200%);
+  transform: translateY(200%);
+  transition: opacity 0.15s ease, transform 0.15s ease;
 }
 
 .btn-cv-icon {
   opacity: 0;
-  transform: translateY(200%);
-  transition: opacity 0.2s ease 0.1s, transform 0.2s ease 0.1s;
+  transform: translateY(-200%);
+  transition: opacity 0.15s ease, transform 0.15s ease;
 }
 
 .btn-cv-wrap:hover .btn-cv-icon {
   opacity: 1;
   transform: translateY(0);
+  transition: opacity 0.2s ease 0.2s, transform 0.2s ease 0.2s;
 }
 
 /* Secondary button – sweep hover (Browse Projects, social links) */
 .btn-secondary {
   position: relative;
   overflow: hidden;
-  border: 1px solid rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(0, 0, 0, 0.12);
   background-color: rgba(255, 255, 255, 0.6);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
   color: #374151;
-  font-family: var(--font-sans);
-  z-index: 0;
+  font-family: var(--font-mono);
+  letter-spacing: 0.02em;
+  z-index: 1;
   transition: color 0.3s ease, border-color 0.3s ease;
+}
+
+.btn-secondary::after {
+  content: "";
+  position: absolute;
+  inset: -8px;
+  z-index: -2;
+  border-radius: inherit;
+  background: radial-gradient(circle, rgba(16, 185, 129, 0.3) 0%, transparent 70%);
+  opacity: 0;
+  filter: blur(12px);
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.btn-secondary:hover::after {
+  opacity: 1;
 }
 
 .btn-secondary::before {
@@ -205,18 +233,36 @@ html.theme-transition *::after {
   border-color: transparent;
 }
 
+/* Timeline gradient line (pseudo-element to avoid border-image conflicts) */
+.timeline-line {
+  position: relative;
+}
+
+.timeline-line::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: linear-gradient(to bottom, #10b981, #d1d5db);
+}
+
+.dark .timeline-line::before {
+  background: linear-gradient(to bottom, #10b981, #374151);
+}
+
 /* Timeline dot hover glow */
 .timeline-entry .timeline-dot {
-  transition: border-color 0.3s ease, background-color 0.3s ease, box-shadow 0.3s ease;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 .timeline-entry:has(.section-card:hover) .timeline-dot {
-  border-color: #10b981;
   background-color: #10b981;
-  box-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
+  box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
 }
 
-/* Scroll fade-in animation */
+/* Scroll fade-in animation (default: from bottom) */
 .fade-in {
   opacity: 0;
   transform: translateY(30px);
@@ -228,6 +274,18 @@ html.theme-transition *::after {
   transform: translateY(0);
 }
 
+/* Scroll fade-in from left (timeline entries) */
+.fade-in-left {
+  opacity: 0;
+  transform: translateX(-20px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.fade-in-left.is-visible {
+  opacity: 1;
+  transform: translateX(0);
+}
+
 /* Cursor glow */
 .cursor-glow {
   position: fixed;
@@ -236,7 +294,7 @@ html.theme-transition *::after {
   border-radius: 50%;
   pointer-events: none;
   z-index: 9999;
-  background: radial-gradient(circle, rgba(16, 185, 129, 0.06) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(16, 185, 129, 0.1) 0%, transparent 70%);
   filter: blur(40px);
   transform: translate(-50%, -50%);
   transition: opacity 0.3s ease;
@@ -248,7 +306,7 @@ html.theme-transition *::after {
 }
 
 :root:not(.dark) .cursor-glow {
-  background: radial-gradient(circle, rgba(16, 185, 129, 0.12) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(16, 185, 129, 0.18) 0%, transparent 70%);
 }
 
 /* Floating geometric shapes */
@@ -272,6 +330,15 @@ html.theme-transition *::after {
 
 .floating-shape {
   animation: float-drift 20s ease-in-out infinite;
+}
+
+.draggable-shape {
+  transition: opacity 0.2s ease, filter 0.2s ease;
+}
+
+.draggable-shape:hover {
+  opacity: 1;
+  filter: brightness(2);
 }
 
 /* Nav link – hover: underline grows in */
@@ -329,6 +396,24 @@ html.theme-transition *::after {
 
 .dark .nav-link.active::after {
   background-color: #10b981;
+}
+
+/* Avatar hover – glow + green border */
+.avatar-wrap {
+  position: relative;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
+}
+
+.avatar-wrap:hover {
+  border-color: #10b981;
+  box-shadow: 0 0 40px rgba(16, 185, 129, 0.25), 0 10px 40px rgba(0, 0, 0, 0.08);
+  transform: translateY(-4px);
+}
+
+.dark .avatar-wrap:hover {
+  box-shadow: 0 0 40px rgba(16, 185, 129, 0.3), 0 10px 40px rgba(0, 0, 0, 0.3);
 }
 
 /* Typing cursor blink */

@@ -89,21 +89,21 @@ const education = [
 <!-- Bio -->
 <section id="bio" class="py-24">
   <div class="mx-auto max-w-5xl px-6">
-    <div class="section-card section-card--static fade-in flex flex-col items-center gap-10 p-8 md:flex-row md:items-start">
-      <!-- Photo (mobile: top, desktop: right via order) -->
-      <div class="flex-shrink-0 md:order-2">
+    <div class="fade-in flex flex-col items-center gap-12 md:flex-row md:items-start">
+      <!-- Photo -->
+      <div class="avatar-wrap flex-shrink-0">
         <img
           src="/avatar.png"
           alt="Daniel Guntermann"
-          width="200"
-          height="200"
+          width="240"
+          height="240"
           loading="lazy"
-          class="h-[200px] w-[200px] rounded-full object-cover shadow-[0_4px_12px_rgba(0,0,0,0.1)] transition-all duration-300 ease-in-out hover:scale-[1.03] hover:shadow-[0_6px_20px_rgba(0,0,0,0.15)]"
+          class="avatar-img h-[240px] w-[240px] rounded-full object-cover"
         />
       </div>
 
       <!-- Text content -->
-      <div class="md:order-1">
+      <div class="flex-1">
         <h2 class="mb-6 font-mono text-2xl font-bold text-[#1a1a1a] dark:text-white">About Me</h2>
         <div class="space-y-4 leading-relaxed text-gray-500 dark:text-gray-400">
           <p>
@@ -172,22 +172,18 @@ const education = [
   <div class="mx-auto max-w-5xl px-6">
     <h2 class="fade-in mb-12 font-mono text-2xl font-bold text-[#1a1a1a] dark:text-white">Experience</h2>
 
-    <div class="relative ml-4 border-l border-[rgba(5,150,105,0.15)] dark:border-[rgba(16,185,129,0.2)]">
+    <div class="timeline-line relative ml-4">
       {experiences.map((exp, i) => (
-        <div class="timeline-entry fade-in relative mb-10 pl-8 last:mb-0" style={`transition-delay: ${i * 150}ms`}>
+        <div class="timeline-entry fade-in-left relative mb-10 pl-8 last:mb-0" style={`transition-delay: ${i * 150}ms`}>
           <!-- Timeline dot -->
-          {i === 0 ? (
-            <div class="timeline-dot absolute -left-[7px] top-1.5 h-3.5 w-3.5 rounded-full border-2 border-emerald-500 bg-emerald-500" style="box-shadow: 0 0 8px rgba(16, 185, 129, 0.5);" />
-          ) : (
-            <div class="timeline-dot absolute -left-[7px] top-1.5 h-3.5 w-3.5 rounded-full border-2 border-gray-300 bg-[#f7f7f5] dark:border-gray-600 dark:bg-[#0a0a0a]" />
-          )}
+          <div class="timeline-dot absolute -left-[7px] top-1.5 h-3.5 w-3.5 rounded-full border-2 border-emerald-500 bg-[#f7f7f5] dark:bg-[#0a0a0a]" />
 
           <div class="section-card p-5">
             <div class="mb-2 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-              <h3 class="font-semibold text-[#1a1a1a] dark:text-white">
+              <h3 class="font-mono font-semibold text-[#1a1a1a] dark:text-white">
                 {exp.title}
                 {exp.company && (
-                  <span class="font-normal text-gray-500 dark:text-gray-400"> &ndash; {exp.company}</span>
+                  <span class="font-sans font-normal text-gray-500 dark:text-gray-400"> &ndash; {exp.company}</span>
                 )}
               </h3>
               <span class="text-sm text-gray-400 dark:text-gray-500">{exp.period}</span>
@@ -212,17 +208,17 @@ const education = [
   <div class="mx-auto max-w-5xl px-6">
     <h2 class="fade-in mb-12 font-mono text-2xl font-bold text-[#1a1a1a] dark:text-white">Education & Certifications</h2>
 
-    <div class="relative ml-4 border-l border-[rgba(5,150,105,0.15)] dark:border-[rgba(16,185,129,0.2)]">
+    <div class="timeline-line relative ml-4">
       {education.map((edu, i) => (
-        <div class="timeline-entry fade-in relative mb-10 pl-8 last:mb-0" style={`transition-delay: ${i * 150}ms`}>
+        <div class="timeline-entry fade-in-left relative mb-10 pl-8 last:mb-0" style={`transition-delay: ${i * 150}ms`}>
           <!-- Timeline dot -->
-          <div class="timeline-dot absolute -left-[7px] top-1.5 h-3.5 w-3.5 rounded-full border-2 border-gray-300 bg-[#f7f7f5] dark:border-gray-600 dark:bg-[#0a0a0a]" />
+          <div class="timeline-dot absolute -left-[7px] top-1.5 h-3.5 w-3.5 rounded-full border-2 border-emerald-500 bg-[#f7f7f5] dark:bg-[#0a0a0a]" />
 
           <div class="section-card p-5">
             <div class="mb-2 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-              <h3 class="font-semibold text-[#1a1a1a] dark:text-white">
+              <h3 class="font-mono font-semibold text-[#1a1a1a] dark:text-white">
                 {edu.title}
-                <span class="font-normal text-gray-500 dark:text-gray-400"> &ndash; {edu.institution}</span>
+                <span class="font-sans font-normal text-gray-500 dark:text-gray-400"> &ndash; {edu.institution}</span>
               </h3>
               <span class="flex-shrink-0 text-sm text-gray-400 dark:text-gray-500">{edu.period}</span>
             </div>

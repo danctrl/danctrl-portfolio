@@ -22,7 +22,7 @@ const {
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700;800&family=Poppins:wght@400;500;600;700&display=swap"
       rel="stylesheet"
     />
     <title>{title}</title>
@@ -48,7 +48,7 @@ const {
     >
       <div class="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
         <!-- Logo -->
-        <a href="/" class="font-mono text-lg font-bold tracking-tight text-[#1a1a1a] dark:text-white">
+        <a href="/" class="font-mono text-lg font-extrabold tracking-tight text-[#1a1a1a] dark:text-white">
           danctrl
         </a>
 
@@ -209,7 +209,7 @@ const {
         },
         { threshold: 0.1 }
       );
-      document.querySelectorAll(".fade-in").forEach((el) => observer.observe(el));
+      document.querySelectorAll(".fade-in, .fade-in-left").forEach((el) => observer.observe(el));
 
       // Cursor glow (desktop only, no touch)
       const glow = document.getElementById("cursor-glow");
@@ -222,7 +222,7 @@ const {
         document.addEventListener("mousemove", (e) => {
           mouseX = e.clientX;
           mouseY = e.clientY;
-          const overCard = e.target.closest(".section-card");
+          const overCard = e.target.closest(".section-card, .avatar-wrap");
           if (overCard) {
             glow.classList.remove("is-active");
           } else if (!glow.classList.contains("is-active")) {
