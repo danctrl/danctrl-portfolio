@@ -1,0 +1,108 @@
+<section id="contact" class="relative py-24">
+  <!-- Animated emerald gradient blob behind the card -->
+  <div class="contact-blob absolute inset-0 -z-10 overflow-hidden" aria-hidden="true">
+    <div class="contact-blob-inner"></div>
+  </div>
+
+  <div class="mx-auto max-w-2xl px-6">
+    <div class="fade-in glass rounded-2xl p-8 sm:p-12">
+      <h2 class="mb-3 text-center font-mono text-2xl font-bold text-[#1a1a1a] dark:text-white">
+        Get in Touch
+      </h2>
+      <p class="mb-8 text-center text-gray-500 dark:text-gray-400">
+        Have a project idea, a question, or just want to connect? Drop me a message.
+      </p>
+
+      <form action="/api/contact" method="POST" class="flex flex-col gap-5">
+        <div>
+          <label for="name" class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Name</label>
+          <input
+            type="text"
+            id="name"
+            name="name"
+            required
+            placeholder="Your name"
+            class="contact-input w-full rounded-lg border border-gray-200 bg-white/80 px-4 py-2.5 text-sm text-[#1a1a1a] placeholder-gray-500 outline-none transition-all dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder-gray-500"
+          />
+        </div>
+
+        <div>
+          <label for="email" class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">E-Mail</label>
+          <input
+            type="email"
+            id="email"
+            name="email"
+            required
+            placeholder="you@example.com"
+            class="contact-input w-full rounded-lg border border-gray-200 bg-white/80 px-4 py-2.5 text-sm text-[#1a1a1a] placeholder-gray-500 outline-none transition-all dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder-gray-500"
+          />
+        </div>
+
+        <div>
+          <label for="message" class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Message</label>
+          <textarea
+            id="message"
+            name="message"
+            rows="4"
+            required
+            placeholder="Your message..."
+            class="contact-input w-full resize-none rounded-lg border border-gray-200 bg-white/80 px-4 py-2.5 text-sm text-[#1a1a1a] placeholder-gray-500 outline-none transition-all dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder-gray-500"
+          ></textarea>
+        </div>
+
+        <button
+          type="submit"
+          class="contact-submit mt-2 rounded-lg bg-emerald-600 px-6 py-2.5 font-mono text-sm font-semibold text-white transition-all hover:bg-emerald-700"
+        >
+          Send Message
+        </button>
+      </form>
+    </div>
+  </div>
+</section>
+
+<style>
+  /* Animated background blob */
+  .contact-blob-inner {
+    position: absolute;
+    width: 600px;
+    height: 600px;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(16, 185, 129, 0.1) 0%, transparent 70%);
+    animation: contact-drift 20s infinite alternate ease-in-out;
+  }
+
+  @keyframes contact-drift {
+    0% {
+      transform: translate(-50%, -50%) translate(-40px, 30px);
+    }
+    33% {
+      transform: translate(-50%, -50%) translate(30px, -20px);
+    }
+    66% {
+      transform: translate(-50%, -50%) translate(-20px, -30px);
+    }
+    100% {
+      transform: translate(-50%, -50%) translate(40px, 20px);
+    }
+  }
+
+  /* Input focus glow */
+  .contact-input:focus {
+    border-color: #10b981;
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
+  }
+
+  /* Submit button lift on hover */
+  .contact-submit {
+    box-shadow: 0 2px 8px rgba(5, 150, 105, 0.2);
+  }
+
+  .contact-submit:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(5, 150, 105, 0.3);
+  }
+</style>
