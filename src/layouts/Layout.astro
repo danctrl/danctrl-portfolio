@@ -198,6 +198,19 @@ const {
         setTimeout(() => html.classList.remove("theme-transition"), 300);
       });
 
+      // CV download click animation
+      const cvWrap = document.querySelector(".btn-cv-wrap");
+      const cvLink = cvWrap?.querySelector<HTMLAnchorElement>(".btn-cv");
+      cvLink?.addEventListener("click", (e) => {
+        e.preventDefault();
+        cvWrap!.classList.add("downloading");
+        const href = cvLink.href;
+        setTimeout(() => {
+          cvWrap!.classList.remove("downloading");
+          window.open(href, "_blank");
+        }, 600);
+      });
+
       // Scroll fade-in with Intersection Observer
       const observer = new IntersectionObserver(
         (entries) => {

@@ -166,6 +166,18 @@ html.theme-transition *::after {
   transition: opacity 0.2s ease 0.2s, transform 0.2s ease 0.2s;
 }
 
+/* Download CV click animation */
+.btn-cv-wrap.downloading .btn-cv-icon {
+  animation: cv-download-bounce 600ms ease-in-out forwards;
+}
+
+@keyframes cv-download-bounce {
+  0% { transform: translateY(0); opacity: 1; }
+  50% { transform: translateY(200%); opacity: 0; }
+  51% { transform: translateY(-200%); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+
 /* Secondary button – sweep hover (Browse Projects, social links) */
 .btn-secondary {
   position: relative;

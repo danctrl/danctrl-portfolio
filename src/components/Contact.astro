@@ -5,64 +5,86 @@
   </div>
 
   <div class="mx-auto max-w-2xl px-6">
-    <div class="fade-in glass rounded-2xl p-8 sm:p-12">
-      <h2 class="mb-3 text-center font-mono text-2xl font-bold text-[#1a1a1a] dark:text-white">
-        Get in Touch
-      </h2>
-      <p class="mb-8 text-center text-gray-500 dark:text-gray-400">
-        Have a project idea, a question, or just want to connect? Drop me a message.
-      </p>
+    <div id="contact-card" class="contact-card fade-in relative">
+      <div class="contact-glow" aria-hidden="true"></div>
+      <div class="section-card section-card--static relative z-10 rounded-2xl p-8 sm:p-12">
 
-      <form action="/api/contact" method="POST" class="flex flex-col gap-5">
-        <div>
-          <label for="name" class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Name</label>
-          <input
-            type="text"
-            id="name"
-            name="name"
-            required
-            placeholder="Your name"
-            class="contact-input w-full rounded-lg border border-gray-200 bg-white/80 px-4 py-2.5 text-sm text-[#1a1a1a] placeholder-gray-500 outline-none transition-all dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder-gray-500"
-          />
+      <!-- Form view -->
+      <div id="contact-form-view">
+        <h2 class="mb-3 text-center font-mono text-2xl font-bold text-[#1a1a1a] dark:text-white">
+          Get in Touch
+        </h2>
+        <p class="mb-8 text-center text-gray-500 dark:text-gray-400">
+          Have a project idea, a question, or just want to connect? Drop me a message.
+        </p>
+
+        <form action="/api/contact" method="POST" class="flex flex-col gap-5">
+          <div>
+            <label for="name" class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Name</label>
+            <input
+              type="text"
+              id="name"
+              name="name"
+              required
+              placeholder="Your name"
+              class="contact-input w-full rounded-lg border border-gray-200 bg-white/80 px-4 py-2.5 text-sm text-[#1a1a1a] placeholder-gray-500 outline-none transition-all dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder-gray-500"
+            />
+          </div>
+
+          <div>
+            <label for="email" class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">E-Mail</label>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              required
+              placeholder="you@example.com"
+              class="contact-input w-full rounded-lg border border-gray-200 bg-white/80 px-4 py-2.5 text-sm text-[#1a1a1a] placeholder-gray-500 outline-none transition-all dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder-gray-500"
+            />
+          </div>
+
+          <div>
+            <label for="message" class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Message</label>
+            <textarea
+              id="message"
+              name="message"
+              rows="4"
+              required
+              placeholder="Your message..."
+              class="contact-input w-full resize-none rounded-lg border border-gray-200 bg-white/80 px-4 py-2.5 text-sm text-[#1a1a1a] placeholder-gray-500 outline-none transition-all dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder-gray-500"
+            ></textarea>
+          </div>
+
+          <!-- Cloudflare Turnstile (rendered on first submit) -->
+          <div id="turnstile-container" class="hidden"></div>
+
+          <button
+            type="submit"
+            class="btn-primary mt-2 inline-flex h-[44px] w-[140px] items-center justify-center rounded-lg text-sm"
+          >
+            Send Message
+          </button>
+        </form>
+      </div>
+
+      <!-- Success view (hidden by default) -->
+      <div id="contact-success-view" class="hidden py-12 text-center">
+        <div class="mb-4 inline-flex h-16 w-16 items-center justify-center rounded-full bg-emerald-500/10">
+          <svg class="h-8 w-8 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+          </svg>
         </div>
-
-        <div>
-          <label for="email" class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">E-Mail</label>
-          <input
-            type="email"
-            id="email"
-            name="email"
-            required
-            placeholder="you@example.com"
-            class="contact-input w-full rounded-lg border border-gray-200 bg-white/80 px-4 py-2.5 text-sm text-[#1a1a1a] placeholder-gray-500 outline-none transition-all dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder-gray-500"
-          />
-        </div>
-
-        <div>
-          <label for="message" class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Message</label>
-          <textarea
-            id="message"
-            name="message"
-            rows="4"
-            required
-            placeholder="Your message..."
-            class="contact-input w-full resize-none rounded-lg border border-gray-200 bg-white/80 px-4 py-2.5 text-sm text-[#1a1a1a] placeholder-gray-500 outline-none transition-all dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder-gray-500"
-          ></textarea>
-        </div>
-
-        <!-- Cloudflare Turnstile (rendered on first submit) -->
-        <div id="turnstile-container" class="hidden"></div>
-
+        <h3 class="mb-2 font-mono text-xl font-bold text-[#1a1a1a] dark:text-white">Message Sent!</h3>
+        <p class="mb-6 text-gray-500 dark:text-gray-400">Thanks for reaching out. I'll get back to you soon.</p>
         <button
-          type="submit"
-          class="contact-submit mt-2 rounded-lg bg-emerald-600 px-6 py-2.5 font-mono text-sm font-semibold text-white transition-all hover:bg-emerald-700"
+          id="contact-send-another"
+          class="font-mono text-sm text-emerald-600 transition-colors hover:text-emerald-500 dark:text-emerald-400 dark:hover:text-emerald-300"
         >
-          Send Message
+          Send another message
         </button>
-      </form>
+      </div>
 
-      <!-- Status message -->
-      <div id="contact-status" class="mt-4 hidden text-center text-sm"></div>
+      </div>
     </div>
   </div>
 </section>
@@ -102,6 +124,60 @@
     box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
   }
 
+  /* Moving border glow on typing */
+  .contact-glow {
+    position: absolute;
+    inset: -3px;
+    z-index: 0;
+    border-radius: 1.1rem;
+    opacity: 0;
+    transition: opacity 0.8s ease;
+    overflow: hidden;
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    padding: 3px;
+  }
+
+  .contact-glow::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 200%;
+    height: 200%;
+    margin-left: -100%;
+    margin-top: -100%;
+    background: conic-gradient(
+      from 0deg,
+      transparent 0%,
+      transparent 15%,
+      rgba(16, 185, 129, 0.5) 25%,
+      rgba(16, 185, 129, 0.6) 30%,
+      rgba(16, 185, 129, 0.5) 35%,
+      transparent 45%,
+      transparent 100%
+    );
+    animation: contact-glow-rotate 8s linear infinite;
+  }
+
+  .contact-card.is-typing .contact-glow {
+    opacity: 1;
+  }
+
+  /* Disable section-card hover glow while typing glow is active */
+  .contact-card.is-typing .section-card {
+    border-color: transparent !important;
+    box-shadow: none !important;
+  }
+
+  @keyframes contact-glow-rotate {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
   /* Submit button lift on hover */
   .contact-submit {
     box-shadow: 0 2px 8px rgba(5, 150, 105, 0.2);
@@ -115,12 +191,26 @@
 
 <script>
   const form = document.querySelector<HTMLFormElement>("#contact form");
-  const status = document.getElementById("contact-status");
   const container = document.getElementById("turnstile-container");
+  const card = document.getElementById("contact-card");
+  const formView = document.getElementById("contact-form-view");
+  const successView = document.getElementById("contact-success-view");
+  const sendAnother = document.getElementById("contact-send-another");
   let turnstileReady = false;
 
+  // Typing detection — activate glow, stays until submit
+  form?.addEventListener("input", () => {
+    card?.classList.add("is-typing");
+  });
+
+  // Send another message — reset to form view
+  sendAnother?.addEventListener("click", () => {
+    successView?.classList.add("hidden");
+    formView?.classList.remove("hidden");
+  });
+
   async function submitForm() {
-    if (!form || !status) return;
+    if (!form) return;
 
     const btn = form.querySelector<HTMLButtonElement>("button[type=submit]");
     if (btn) {
@@ -135,27 +225,40 @@
       });
 
       if (res.ok) {
-        status.textContent = "Message sent! I'll get back to you soon.";
-        status.className = "mt-4 text-center text-sm text-emerald-600 dark:text-emerald-400";
         form.reset();
+        card?.classList.remove("is-typing");
+        // Show success view
+        formView?.classList.add("hidden");
+        successView?.classList.remove("hidden");
         // Hide and reset Turnstile for next submission
         if (container) container.classList.add("hidden");
         if (window.turnstile) window.turnstile.reset();
         turnstileReady = false;
       } else {
         const data = await res.json().catch(() => ({}));
-        status.textContent = data.error || "Something went wrong. Please try again.";
-        status.className = "mt-4 text-center text-sm text-red-600 dark:text-red-400";
+        showError(data.error || "Something went wrong. Please try again.");
       }
     } catch {
-      status.textContent = "Network error. Please try again.";
-      status.className = "mt-4 text-center text-sm text-red-600 dark:text-red-400";
+      showError("Network error. Please try again.");
     } finally {
       if (btn) {
         btn.disabled = false;
         btn.textContent = "Send Message";
       }
     }
+  }
+
+  function showError(msg: string) {
+    // Show inline error below form
+    let err = document.getElementById("contact-error");
+    if (!err) {
+      err = document.createElement("p");
+      err.id = "contact-error";
+      err.className = "mt-4 text-center text-sm text-red-600 dark:text-red-400";
+      form?.parentElement?.appendChild(err);
+    }
+    err.textContent = msg;
+    setTimeout(() => err?.remove(), 5000);
   }
 
   form?.addEventListener("submit", (e) => {
