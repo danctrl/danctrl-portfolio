@@ -50,8 +50,8 @@
           ></textarea>
         </div>
 
-        <!-- Cloudflare Turnstile -->
-        <div class="cf-turnstile" data-sitekey="0x4AAAAAACd3toYLr-zpefgU" data-theme="auto"></div>
+        <!-- Cloudflare Turnstile (rendered on first submit) -->
+        <div id="turnstile-container" class="hidden"></div>
 
         <button
           type="submit"
@@ -116,10 +116,11 @@
 <script>
   const form = document.querySelector<HTMLFormElement>("#contact form");
   const status = document.getElementById("contact-status");
+  const container = document.getElementById("turnstile-container");
+  let turnstileReady = false;
 
-  form?.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    if (!status) return;
+  async function submitForm() {
+    if (!form || !status) return;
 
     const btn = form.querySelector<HTMLButtonElement>("button[type=submit]");
     if (btn) {
@@ -137,8 +138,10 @@
         status.textContent = "Message sent! I'll get back to you soon.";
         status.className = "mt-4 text-center text-sm text-emerald-600 dark:text-emerald-400";
         form.reset();
-        // Reset Turnstile widget
+        // Hide and reset Turnstile for next submission
+        if (container) container.classList.add("hidden");
         if (window.turnstile) window.turnstile.reset();
+        turnstileReady = false;
       } else {
         const data = await res.json().catch(() => ({}));
         status.textContent = data.error || "Something went wrong. Please try again.";
@@ -152,6 +155,32 @@
         btn.disabled = false;
         btn.textContent = "Send Message";
       }
+    }
+  }
+
+  form?.addEventListener("submit", (e) => {
+    e.preventDefault();
+    if (!form.checkValidity()) {
+      form.reportValidity();
+      return;
+    }
+
+    // If Turnstile already solved, submit directly
+    const token = form.querySelector<HTMLInputElement>("[name='cf-turnstile-response']");
+    if (token?.value) {
+      submitForm();
+      return;
+    }
+
+    // Show and render Turnstile on first click
+    if (container && !turnstileReady) {
+      container.classList.remove("hidden");
+      turnstileReady = true;
+      window.turnstile.render(container, {
+        sitekey: "0x4AAAAAACd3toYLr-zpefgU",
+        theme: "auto",
+        callback: () => submitForm(),
+      });
     }
   });
 </script>
