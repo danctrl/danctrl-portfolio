@@ -60,12 +60,12 @@ html.theme-transition *::after {
 
 /* Hero gradient overlay (subtle emerald glow) */
 .hero-gradient {
-  background: radial-gradient(ellipse 80% 60% at 50% 40%, rgba(16, 185, 129, 0.08) 0%, transparent 70%),
+  background: radial-gradient(ellipse 80% 60% at 50% 40%, rgba(5, 150, 105, 0.08) 0%, transparent 70%),
     radial-gradient(ellipse 60% 50% at 30% 60%, rgba(5, 150, 105, 0.05) 0%, transparent 70%);
 }
 
 :root:not(.dark) .hero-gradient {
-  background: radial-gradient(ellipse 80% 60% at 50% 40%, rgba(16, 185, 129, 0.05) 0%, transparent 70%),
+  background: radial-gradient(ellipse 80% 60% at 50% 40%, rgba(5, 150, 105, 0.05) 0%, transparent 70%),
     radial-gradient(ellipse 60% 50% at 30% 60%, rgba(5, 150, 105, 0.03) 0%, transparent 70%);
 }
 
@@ -98,8 +98,8 @@ html.theme-transition *::after {
 }
 
 .section-card:not(.section-card--static):hover {
-  border-color: rgba(16, 185, 129, 0.5);
-  box-shadow: 0 0 40px rgba(16, 185, 129, 0.15), 0 10px 40px rgba(0, 0, 0, 0.08);
+  border-color: rgba(5, 150, 105, 0.5);
+  box-shadow: 0 0 40px rgba(5, 150, 105, 0.15), 0 10px 40px rgba(0, 0, 0, 0.08);
   transform: translateY(-4px);
 }
 
@@ -110,8 +110,8 @@ html.theme-transition *::after {
 }
 
 .dark .section-card:not(.section-card--static):hover {
-  border-color: rgba(16, 185, 129, 0.5);
-  box-shadow: 0 0 30px rgba(16, 185, 129, 0.2), 0 10px 40px rgba(0, 0, 0, 0.3);
+  border-color: rgba(5, 150, 105, 0.5);
+  box-shadow: 0 0 30px rgba(5, 150, 105, 0.2), 0 10px 40px rgba(0, 0, 0, 0.3);
   transform: translateY(-4px);
 }
 
@@ -199,7 +199,7 @@ html.theme-transition *::after {
   inset: -8px;
   z-index: -2;
   border-radius: inherit;
-  background: radial-gradient(circle, rgba(16, 185, 129, 0.3) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(5, 150, 105, 0.3) 0%, transparent 70%);
   opacity: 0;
   filter: blur(12px);
   transition: opacity 0.3s ease;
@@ -257,11 +257,11 @@ html.theme-transition *::after {
   top: 0;
   bottom: 0;
   width: 1px;
-  background: linear-gradient(to bottom, #10b981, #d1d5db);
+  background: linear-gradient(to bottom, #059669, #d1d5db);
 }
 
 .dark .timeline-line::before {
-  background: linear-gradient(to bottom, #10b981, #374151);
+  background: linear-gradient(to bottom, #059669, #374151);
 }
 
 /* Timeline dot hover glow */
@@ -270,8 +270,8 @@ html.theme-transition *::after {
 }
 
 .timeline-entry:has(.section-card:hover) .timeline-dot {
-  background-color: #10b981;
-  box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
+  background-color: #059669;
+  box-shadow: 0 0 20px rgba(5, 150, 105, 0.3);
 }
 
 /* Scroll fade-in animation (default: from bottom) */
@@ -306,7 +306,7 @@ html.theme-transition *::after {
   border-radius: 50%;
   pointer-events: none;
   z-index: 9999;
-  background: radial-gradient(circle, rgba(16, 185, 129, 0.1) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(5, 150, 105, 0.1) 0%, transparent 70%);
   filter: blur(40px);
   transform: translate(-50%, -50%);
   transition: opacity 0.3s ease;
@@ -318,7 +318,7 @@ html.theme-transition *::after {
 }
 
 :root:not(.dark) .cursor-glow {
-  background: radial-gradient(circle, rgba(16, 185, 129, 0.18) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(5, 150, 105, 0.18) 0%, transparent 70%);
 }
 
 /* Floating geometric shapes */
@@ -403,11 +403,11 @@ html.theme-transition *::after {
 }
 
 .dark .nav-link.active {
-  color: #10b981;
+  color: #059669;
 }
 
 .dark .nav-link.active::after {
-  background-color: #10b981;
+  background-color: #059669;
 }
 
 /* Avatar hover – glow + green border */
@@ -419,13 +419,13 @@ html.theme-transition *::after {
 }
 
 .avatar-wrap:hover {
-  border-color: #10b981;
-  box-shadow: 0 0 40px rgba(16, 185, 129, 0.25), 0 10px 40px rgba(0, 0, 0, 0.08);
+  border-color: #059669;
+  box-shadow: 0 0 40px rgba(5, 150, 105, 0.25), 0 10px 40px rgba(0, 0, 0, 0.08);
   transform: translateY(-4px);
 }
 
 .dark .avatar-wrap:hover {
-  box-shadow: 0 0 40px rgba(16, 185, 129, 0.3), 0 10px 40px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 0 40px rgba(5, 150, 105, 0.3), 0 10px 40px rgba(0, 0, 0, 0.3);
 }
 
 /* Typing cursor blink */
