@@ -10,6 +10,9 @@ const {
   title = "Daniel Guntermann – DevOps | AI | Cybersecurity",
   description = "Portfolio of Daniel Guntermann – Junior DevOps Engineer, AI enthusiast, and cybersecurity advocate based in Berlin.",
 } = Astro.props;
+
+const canonicalURL = new URL(Astro.url.pathname, "https://danctrl.dev");
+const ogImage = new URL("/og-image.png", "https://danctrl.dev");
 ---
 
 <!doctype html>
@@ -21,6 +24,18 @@ const {
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content={description} />
     <meta name="generator" content={Astro.generator} />
+    <link rel="canonical" href={canonicalURL.href} />
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={canonicalURL.href} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={ogImage.href} />
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage.href} />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -46,8 +61,13 @@ const {
   <body
     class="dot-grid isolate bg-[#f7f7f5] text-[#1a1a1a] font-sans antialiased dark:bg-[#0a0a0a] dark:text-gray-50"
   >
+    <a
+      href="#hero"
+      class="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[60] focus:rounded-lg focus:bg-emerald-600 focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-white"
+    >Skip to content</a>
     <nav
       class="glass fixed top-0 left-0 right-0 z-50 border-b dark:border-b"
+      aria-label="Main navigation"
     >
       <div class="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
         <!-- Logo -->
@@ -298,5 +318,9 @@ const {
         animateGlow();
       }
     </script>
+
+    <!-- Cloudflare Web Analytics -->
+    <script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "REPLACE_WITH_YOUR_TOKEN"}'></script>
+    <!-- End Cloudflare Web Analytics -->
   </body>
 </html>

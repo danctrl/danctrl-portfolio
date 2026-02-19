@@ -97,15 +97,14 @@ const education = [
           alt="Daniel Guntermann"
           width="240"
           height="240"
-          loading="lazy"
           class="avatar-img h-60 w-60 rounded-full object-cover"
         />
       </div>
 
       <!-- Text content -->
       <div class="flex-1">
-        <h2 class="mb-6 font-mono text-2xl font-bold text-[#1a1a1a] dark:text-white">About Me</h2>
-        <div class="space-y-4 leading-relaxed text-gray-500 dark:text-gray-400">
+        <h2 class="mb-6 font-mono text-xl font-bold text-[#1a1a1a] sm:text-2xl dark:text-white">About Me</h2>
+        <div class="space-y-4 text-sm leading-relaxed text-gray-500 sm:text-base lg:text-lg dark:text-gray-400">
           <p>
             I'm a product-minded technologist with a focus on infrastructure automation,
             containerization, and cybersecurity. Based in Berlin, I run a self-hosted homelab
@@ -172,13 +171,13 @@ const education = [
 <!-- Experience -->
 <section id="experience" class="py-24">
   <div class="mx-auto max-w-5xl px-6">
-    <h2 class="fade-in mb-12 font-mono text-2xl font-bold text-[#1a1a1a] dark:text-white">Experience</h2>
+    <h2 class="fade-in mb-12 font-mono text-xl font-bold text-[#1a1a1a] sm:text-2xl dark:text-white">Experience</h2>
 
     <div class="timeline-line relative ml-4">
       {experiences.map((exp, i) => (
         <div class="timeline-entry fade-in-left relative mb-10 pl-8 last:mb-0" style={`transition-delay: ${i * 150}ms`}>
           <!-- Timeline dot -->
-          <div class="timeline-dot absolute -left-2 top-1.5 h-3.5 w-3.5 rounded-full border-2 border-emerald-600 bg-[#f7f7f5] dark:bg-[#0a0a0a]" />
+          <div class="timeline-dot absolute -left-2 top-1.5 h-3 w-3 rounded-full border-2 border-emerald-600 bg-[#f7f7f5] sm:h-3.5 sm:w-3.5 dark:bg-[#0a0a0a]" />
 
           <div class="section-card p-5">
             <div class="mb-2 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
@@ -208,13 +207,13 @@ const education = [
 <!-- Education & Certifications -->
 <section id="education" class="py-24">
   <div class="mx-auto max-w-5xl px-6">
-    <h2 class="fade-in mb-12 font-mono text-2xl font-bold text-[#1a1a1a] dark:text-white">Education & Certifications</h2>
+    <h2 class="fade-in mb-12 font-mono text-xl font-bold text-[#1a1a1a] sm:text-2xl dark:text-white">Education & Certifications</h2>
 
     <div class="timeline-line relative ml-4">
       {education.map((edu, i) => (
         <div class="timeline-entry fade-in-left relative mb-10 pl-8 last:mb-0" style={`transition-delay: ${i * 150}ms`}>
           <!-- Timeline dot -->
-          <div class="timeline-dot absolute -left-2 top-1.5 h-3.5 w-3.5 rounded-full border-2 border-emerald-600 bg-[#f7f7f5] dark:bg-[#0a0a0a]" />
+          <div class="timeline-dot absolute -left-2 top-1.5 h-3 w-3 rounded-full border-2 border-emerald-600 bg-[#f7f7f5] sm:h-3.5 sm:w-3.5 dark:bg-[#0a0a0a]" />
 
           <div class="section-card p-5">
             <div class="mb-2 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">

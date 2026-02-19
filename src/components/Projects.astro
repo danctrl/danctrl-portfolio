@@ -1,40 +1,40 @@
 ---
 const projects = [
   {
-    title: "Podman-Powered Homelab",
+    title: "Podman-powered Homelab",
     description:
-      "Self-hosted infrastructure on Red Hat Linux with rootless Podman containers, Traefik reverse proxy, and automated deployments. Runs 10+ services including monitoring, DNS, and media.",
+      "Lightweight homelab stack using Podman and systemd on RHEL. Containerized services with Traefik reverse proxy and Authentik authentication.",
     status: "Live",
     image: "/homelab.png",
-    stack: ["Podman", "RHEL", "Traefik", "Ansible", "Bash"],
-    link: "https://github.com/danctrl",
+    stack: ["Podman", "RHEL", "Traefik", "Systemd", "DevOps"],
+    link: "https://github.com/danctrl/podman-containers",
   },
   {
-    title: "Smart Home Automation",
+    title: "Stadium – Smart Home",
     description:
-      "Home Assistant running in a KVM virtual machine on the homelab server. Custom automation workflows for lighting, climate, and security with MQTT integration.",
+      "Local-first Home Assistant instance running in a KVM virtual machine on RHEL. 409 entities, Zigbee/Matter integration, automated backups, secured with Traefik + Authentik.",
     status: "Live",
     image: "/smarthome.png",
-    stack: ["Home Assistant", "KVM", "MQTT", "YAML"],
-    link: "https://github.com/danctrl",
+    stack: ["Home Assistant", "KVM", "Zigbee", "Matter", "YAML"],
+    link: "https://github.com/danctrl/home-assistant-stadium",
   },
   {
-    title: "danctrl.dev",
+    title: "danctrl.dev Portfolio",
     description:
-      "This portfolio site — built with Astro and Tailwind CSS, deployed on Cloudflare Pages with GitHub Actions CI/CD. A meta-project showcasing DevOps thinking.",
+      "This website – built with Astro and Tailwind CSS, deployed on Cloudflare Pages with CI/CD. A meta-project showcasing DevOps thinking.",
     status: "Building",
     image: "/portfolio.png",
-    stack: ["Astro", "Tailwind CSS", "Cloudflare Pages", "GitHub Actions"],
-    link: "https://github.com/danctrl",
+    stack: ["Astro", "Tailwind CSS", "Cloudflare Pages", "TypeScript"],
+    link: "https://github.com/danctrl/danctrl-portfolio",
   },
   {
     title: "my kita",
     description:
-      "Le Wagon final project — a web app helping Berlin parents find kindergartens. Built as a team with search, filtering, and map integration.",
+      "Web application helping parents in Berlin find and apply to kindergartens. Built during Le Wagon coding bootcamp as a team project.",
     status: "Live",
     image: "/mykita.png",
     stack: ["Ruby on Rails", "PostgreSQL", "JavaScript", "Bootstrap"],
-    link: "https://github.com/danctrl",
+    link: "https://github.com/lamoureuxmarie/my-kita",
   },
 ];
 
@@ -59,7 +59,7 @@ const statusColors: Record<string, { bg: string; text: string; dot: string }> = 
 
 <section id="projects" class="py-24">
   <div class="mx-auto max-w-5xl px-6">
-    <h2 class="fade-in mb-12 font-mono text-2xl font-bold text-[#1a1a1a] dark:text-white">Projects</h2>
+    <h2 class="fade-in mb-12 font-mono text-xl font-bold text-[#1a1a1a] sm:text-2xl dark:text-white">Projects</h2>
 
     <div class="grid gap-6 sm:grid-cols-2">
       {projects.map((project, i) => {
