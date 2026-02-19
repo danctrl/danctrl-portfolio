@@ -183,71 +183,34 @@ html.theme-transition *::after {
   100% { transform: translateY(0); opacity: 1; }
 }
 
-/* Secondary button – sweep hover (Browse Projects, social links) */
+/* Secondary button – emerald glow on hover */
 .btn-secondary {
-  position: relative;
-  overflow: hidden;
-  border: 1px solid rgba(0, 0, 0, 0.12);
+  border: 1px solid rgba(0, 0, 0, 0.1);
   background-color: rgba(255, 255, 255, 0.6);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
   color: #374151;
   font-family: var(--font-mono);
   letter-spacing: 0.02em;
-  z-index: 1;
-  transition: color 0.3s ease, border-color 0.3s ease;
-}
-
-.btn-secondary::after {
-  content: "";
-  position: absolute;
-  inset: -8px;
-  z-index: -2;
-  border-radius: inherit;
-  background: radial-gradient(circle, rgba(5, 150, 105, 0.3) 0%, transparent 70%);
-  opacity: 0;
-  filter: blur(12px);
-  transition: opacity 0.3s ease;
-  pointer-events: none;
-}
-
-.btn-secondary:hover::after {
-  opacity: 1;
-}
-
-.btn-secondary::before {
-  content: "";
-  position: absolute;
-  inset: -1px;
-  z-index: -1;
-  border-radius: inherit;
-  background: #000000;
-  transform: translateX(-100%);
-  transition: transform 0.3s ease;
+  transition: color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 .btn-secondary:hover {
-  color: #ffffff;
-  border-color: transparent;
-}
-
-.btn-secondary:hover::before {
-  transform: translateX(0);
+  color: #059669;
+  border-color: rgba(16, 185, 129, 0.5);
+  box-shadow: 0 0 12px rgba(16, 185, 129, 0.15), 0 0 4px rgba(16, 185, 129, 0.1);
 }
 
 .dark .btn-secondary {
-  border-color: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.1);
   color: #d1d5db;
   background-color: rgba(255, 255, 255, 0.02);
 }
 
-.dark .btn-secondary::before {
-  background: #ffffff;
-}
-
 .dark .btn-secondary:hover {
-  color: #000000;
-  border-color: transparent;
+  color: #34d399;
+  border-color: rgba(16, 185, 129, 0.5);
+  box-shadow: 0 0 12px rgba(16, 185, 129, 0.15), 0 0 4px rgba(16, 185, 129, 0.1);
 }
 
 /* Timeline gradient line (pseudo-element to avoid border-image conflicts) */
