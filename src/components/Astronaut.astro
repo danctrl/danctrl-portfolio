@@ -391,20 +391,14 @@
       transStartX = currentX;
       transStartY = currentY;
       transStartRot = currentRot;
-      transDuration = 800; // longer for smoother feel
+      transDuration = 1200; // long blend for ultra-smooth transition
 
-      // Set a temporary heroStartTime so we can sample the orbit
+      // Set heroStartTime and find the nearest orbit point
+      // so the orbit is already "running" during the blend
       heroStartTime = performance.now();
-
-      // Find the orbit point closest to current position
       const nearestTime = findNearestOrbitTime(currentX, currentY);
-      const target = getHeroPos(nearestTime);
-      glideTargetX = target.x;
-      glideTargetY = target.y;
-      glideTargetRot = target.rot;
-
-      // Store the orbit offset so hero mode continues seamlessly from this point
-      glideOrbitTime = nearestTime;
+      // Offset heroStartTime so the orbit starts at the nearest point
+      heroStartTime = performance.now() - (nearestTime - heroStartTime);
 
       astronaut.classList.remove("idle", "scrolling");
       isIdle = false;
@@ -510,23 +504,23 @@
         case "glide-to-hero": {
           const elapsed = now - transStartTime;
           const progress = Math.min(elapsed / transDuration, 1);
-          // Smooth ease: slow start, slow end for natural feel
-          const ease = progress < 0.5
-            ? 4 * progress * progress * progress
-            : 1 - Math.pow(-2 * progress + 2, 3) / 2;
 
-          const x = transStartX + (glideTargetX - transStartX) * ease;
-          const y = transStartY + (glideTargetY - transStartY) * ease;
-          const rot = transStartRot + (glideTargetRot - transStartRot) * ease;
+          // Smooth ease-in-out blend factor (0 = scroll position, 1 = orbit position)
+          const blend = progress * progress * (3 - 2 * progress); // smoothstep
+
+          // The orbit is already running — get its current live position
+          const orbitPos = getHeroPos(now);
+
+          // Blend from frozen start position toward the live orbit
+          const x = transStartX + (orbitPos.x - transStartX) * blend;
+          const y = transStartY + (orbitPos.y - transStartY) * blend;
+          const rot = transStartRot + (orbitPos.rot - transStartRot) * blend;
 
           applyPosition(x, y, rot);
 
+          // At 100% blend, we're already perfectly on the orbit — seamless handoff
           if (progress >= 1) {
             mode = "hero";
-            // Sync heroStartTime so the orbit continues exactly from the glide target
-            // glideOrbitTime = heroStartTime + orbitOffset, so orbitOffset = glideOrbitTime - heroStartTime
-            const orbitOffset = glideOrbitTime - heroStartTime;
-            heroStartTime = now - orbitOffset;
           }
 
           if (newScrollY >= SCROLL_THRESHOLD) {
@@ -578,7 +572,46 @@
         }
       }
 
+      // ── Timeline dot proximity glow ──
+      updateTimelineDots();
+
       requestAnimationFrame(tick);
+    }
+
+    // ── Timeline dots: light up when astronaut is at same level ──
+    const timelineDots = document.querySelectorAll<HTMLElement>(".timeline-dot");
+    const DOT_PROXIMITY = 80; // px vertical distance to trigger glow
+    let activeDots: Set<HTMLElement> = new Set();
+
+    function updateTimelineDots() {
+      if (!isVisible || mode === "hero") {
+        // Clear all when not in scroll mode
+        if (activeDots.size > 0) {
+          activeDots.forEach((dot) => dot.classList.remove("astronaut-near"));
+          activeDots.clear();
+        }
+        return;
+      }
+
+      const astroCenterY = currentY + SIZE / 2;
+
+      timelineDots.forEach((dot) => {
+        const rect = dot.getBoundingClientRect();
+        const dotCenterY = rect.top + rect.height / 2;
+        const dist = Math.abs(astroCenterY - dotCenterY);
+
+        if (dist < DOT_PROXIMITY) {
+          if (!activeDots.has(dot)) {
+            dot.classList.add("astronaut-near");
+            activeDots.add(dot);
+          }
+        } else {
+          if (activeDots.has(dot)) {
+            dot.classList.remove("astronaut-near");
+            activeDots.delete(dot);
+          }
+        }
+      });
     }
 
     // ── Initialize ──

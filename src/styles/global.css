@@ -274,7 +274,8 @@ html.theme-transition *::after {
   transition: background-color 0.3s ease, box-shadow 0.3s ease;
 }
 
-.timeline-entry:has(.section-card:hover) .timeline-dot {
+.timeline-entry:has(.section-card:hover) .timeline-dot,
+.timeline-dot.astronaut-near {
   background-color: #059669;
   box-shadow: 0 0 20px rgba(5, 150, 105, 0.3);
 }
