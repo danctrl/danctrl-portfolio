@@ -28,6 +28,15 @@ const projects = [
     link: "https://github.com/danctrl/danctrl-portfolio",
   },
   {
+    title: "danctrl.dev (Hugo)",
+    description:
+      "The original portfolio site – built with Hugo and deployed on Cloudflare Pages. Replaced by the current Astro-based version.",
+    status: "Archived",
+    image: "/portfolio.png",
+    stack: ["Hugo", "Go Templates", "Cloudflare Pages", "CI/CD"],
+    link: "https://github.com/danctrl/danctrl.dev",
+  },
+  {
     title: "my kita",
     description:
       "Web application helping parents in Berlin find and apply to kindergartens. Built during Le Wagon coding bootcamp as a team project.",
@@ -48,6 +57,11 @@ const statusColors: Record<string, { bg: string; text: string; dot: string }> = 
     bg: "bg-amber-500/10 dark:bg-amber-500/15",
     text: "text-amber-700 dark:text-amber-400",
     dot: "bg-amber-500",
+  },
+  Archived: {
+    bg: "bg-gray-500/10 dark:bg-gray-500/15",
+    text: "text-gray-700 dark:text-gray-400",
+    dot: "bg-gray-500",
   },
   Planning: {
     bg: "bg-blue-500/10 dark:bg-blue-500/15",
