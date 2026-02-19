@@ -107,10 +107,10 @@ const statusColors: Record<string, { bg: string; text: string; dot: string }> = 
               ))}
             </div>
 
-            {/* Arrow indicator */}
-            <div class="mt-4 text-right text-gray-300 transition-all duration-300 group-hover:translate-x-1 group-hover:text-emerald-500 dark:text-gray-600 dark:group-hover:text-emerald-400">
-              <svg class="inline h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+            {/* External link indicator */}
+            <div class="mt-4 text-right text-gray-400 opacity-0 transition-all duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-emerald-500 group-hover:opacity-100 dark:text-gray-500 dark:group-hover:text-emerald-400">
+              <svg class="inline" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M6 2h8v8M14 2L6 10" stroke-linecap="round" stroke-linejoin="round" />
               </svg>
             </div>
             </div>
