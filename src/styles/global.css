@@ -83,8 +83,23 @@ html.theme-transition *::after {
 }
 
 .dark .glass {
-  background-color: rgba(255, 255, 255, 0.02);
+  background-color: rgba(255, 255, 255, 0.05);
   border-color: rgba(255, 255, 255, 0.06);
+}
+
+@supports not (backdrop-filter: blur(1px)) {
+  .glass {
+    background-color: rgba(255, 255, 255, 0.95);
+  }
+  .dark .glass {
+    background-color: rgba(18, 18, 18, 0.95);
+  }
+  .section-card {
+    background-color: rgba(255, 255, 255, 0.98);
+  }
+  .dark .section-card {
+    background-color: rgba(30, 30, 30, 0.95);
+  }
 }
 
 /* Section card style */
@@ -109,7 +124,7 @@ html.theme-transition *::after {
 }
 
 .dark .section-card {
-  background-color: rgba(255, 255, 255, 0.02);
+  background-color: rgba(255, 255, 255, 0.04);
   border-color: rgba(255, 255, 255, 0.06);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3), 0 4px 12px rgba(0, 0, 0, 0.2);
 }
@@ -233,12 +248,21 @@ html.theme-transition *::after {
   left: 0;
   top: 0;
   bottom: 0;
-  width: 1px;
+  width: 2px;
+  margin-left: -1px;
   background: linear-gradient(to bottom, #059669, #d1d5db);
 }
 
 .dark .timeline-line::before {
   background: linear-gradient(to bottom, #059669, #374151);
+}
+
+/* Timeline dot – bulletproof centering: same left: 0 as the line, transform centers it */
+.timeline-dot {
+  left: 0;
+  width: 14px;
+  height: 14px;
+  transform: translateX(-50%);
 }
 
 /* Timeline dot hover glow */

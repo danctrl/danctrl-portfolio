@@ -156,6 +156,18 @@ const isArchived = (status: string) => status === "Archived";
   </div>
 </section>
 
+<style>
+  #archive-toggle.archive-active {
+    border-color: rgba(16, 185, 129, 0.5);
+    box-shadow: 0 0 12px rgba(16, 185, 129, 0.15);
+    color: #059669;
+  }
+
+  :global(.dark) #archive-toggle.archive-active {
+    color: #10b981;
+  }
+</style>
+
 <script>
   const toggle = document.getElementById("archive-toggle");
   const track = document.getElementById("switch-track");
@@ -176,11 +188,13 @@ const isArchived = (status: string) => status === "Archived";
   function setSwitchOn() {
     if (track) { track.style.backgroundColor = "#059669"; }
     if (thumb) { thumb.style.transform = "translateX(16px)"; }
+    toggle?.classList.add("archive-active");
   }
 
   function setSwitchOff() {
     if (track) { track.style.backgroundColor = ""; }
     if (thumb) { thumb.style.transform = ""; }
+    toggle?.classList.remove("archive-active");
   }
 
   function showArchive() {
