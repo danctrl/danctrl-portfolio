@@ -137,14 +137,23 @@ html.theme-transition *::after {
 
 /* Download CV button – shrink to icon */
 .btn-cv {
-  background-color: #059669;
+  background-color: transparent;
   font-family: var(--font-mono);
   letter-spacing: 0.02em;
-  transition: width 0.3s ease, background-color 0.3s ease, box-shadow 0.3s ease;
 }
 
-.btn-cv-wrap:hover .btn-cv {
-  width: 40px !important;
+.btn-cv::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background-color: #059669;
+  transition: inset 0.3s ease, background-color 0.3s ease, box-shadow 0.3s ease;
+  z-index: -1;
+}
+
+.btn-cv-wrap:hover .btn-cv::before {
+  inset: 0 50px;
   background-color: #047857;
   box-shadow: 0 4px 12px rgba(5, 150, 105, 0.25);
 }
