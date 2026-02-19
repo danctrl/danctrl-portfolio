@@ -1,43 +1,57 @@
-# Astro Starter Kit: Minimal
+# danctrl.dev
 
-```sh
-npm create astro@latest -- --template minimal
+Personal portfolio for [Daniel Guntermann](https://danctrl.dev) — DevOps / AI / Cybersecurity.
+
+Built as a single-page site with a "build log" aesthetic: minimal, dark-first, technical.
+
+## Stack
+
+- **[Astro](https://astro.build)** — static site generation
+- **[Tailwind CSS v4](https://tailwindcss.com)** — utility-first styling
+- **Cloudflare Pages** — hosting & edge functions
+- **Cloudflare Turnstile** — bot-resistant contact form
+- **TypeScript** — throughout
+
+## Local Development
+
+```bash
+npm install
+npm run dev
 ```
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+## Deploy to Cloudflare Pages
 
-## 🚀 Project Structure
+1. Push this repo to GitHub (already done).
+2. Go to [Cloudflare Dashboard](https://dash.cloudflare.com) → **Workers & Pages** → **Create** → **Pages** → **Connect to Git**.
+3. Select the `danctrl-portfolio` repository.
+4. Set the build configuration:
+   - **Framework preset:** Astro
+   - **Build command:** `npm run build`
+   - **Output directory:** `dist`
+5. Add the following **Environment Variables** (Settings → Environment Variables):
 
-Inside of your Astro project, you'll see the following folders and files:
+   | Variable | Description |
+   |---|---|
+   | `TURNSTILE_SECRET_KEY` | Cloudflare Turnstile secret key |
+   | `CONTACT_EMAIL` | Address to receive contact form submissions |
 
-```text
-/
-├── public/
-├── src/
-│   └── pages/
-│       └── index.astro
-└── package.json
+6. Click **Save and Deploy**.
+
+Every push to `master` triggers an automatic redeploy.
+
+## Project Structure
+
+```
+src/
+  components/   # Astro components (Hero, Timeline, Projects, Contact …)
+  layouts/      # Base Layout.astro
+  pages/        # index.astro
+functions/
+  api/
+    contact.ts  # Cloudflare Pages Function – contact form handler
+public/         # Static assets
 ```
 
-Astro looks for `.astro` or `.md` files in the `src/pages/` directory. Each page is exposed as a route based on its file name.
+## License
 
-There's nothing special about `src/components/`, but that's where we like to put any Astro/React/Vue/Svelte/Preact components.
-
-Any static assets, like images, can be placed in the `public/` directory.
-
-## 🧞 Commands
-
-All commands are run from the root of the project, from a terminal:
-
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `npm install`             | Installs dependencies                            |
-| `npm run dev`             | Starts local dev server at `localhost:4321`      |
-| `npm run build`           | Build your production site to `./dist/`          |
-| `npm run preview`         | Preview your build locally, before deploying     |
-| `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `npm run astro -- --help` | Get help using the Astro CLI                     |
-
-## 👀 Want to learn more?
-
-Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+MIT
