@@ -381,8 +381,8 @@
     });
 
     // ── Card/section hover ──
-    function setCardTarget(el: HTMLElement) {
-      if (window.scrollY < SCROLL_THRESHOLD) return;
+    function setCardTarget(el: HTMLElement, force = false) {
+      if (!force && window.scrollY < SCROLL_THRESHOLD) return;
       const rect = el.getBoundingClientRect();
       cardTarget = {
         x: Math.max(10, rect.left - SIZE - 20),
@@ -404,8 +404,27 @@
       card.addEventListener("mouseleave", () => { cardTarget = null; cardHoveredDot = null; });
     });
 
-    // Skills + Contact: follow cursor Y
-    ["skills", "contact"].forEach((id) => {
+    // Hero CTA buttons: pull astronaut towards them on hover
+    document.querySelectorAll<HTMLElement>("#hero a.btn-primary, #hero a.btn-secondary").forEach((btn) => {
+      btn.addEventListener("mouseenter", () => { setCardTarget(btn, true); });
+      btn.addEventListener("mouseleave", () => { cardTarget = null; });
+    });
+
+    // Avatar + social links: move astronaut towards them on hover
+    const avatarWrap = document.querySelector<HTMLElement>(".avatar-wrap");
+    if (avatarWrap) {
+      avatarWrap.addEventListener("mouseenter", () => { setCardTarget(avatarWrap); });
+      avatarWrap.addEventListener("mouseleave", () => { cardTarget = null; });
+    }
+
+    const socialContainer = document.querySelector<HTMLElement>("#about a.btn-secondary")?.parentElement as HTMLElement | null;
+    if (socialContainer) {
+      socialContainer.addEventListener("mouseenter", () => { setCardTarget(socialContainer); });
+      socialContainer.addEventListener("mouseleave", () => { cardTarget = null; });
+    }
+
+    // About + Skills + Contact: follow cursor Y
+    ["about", "skills", "contact"].forEach((id) => {
       const section = document.getElementById(id);
       if (!section) return;
       let hovered = false;
