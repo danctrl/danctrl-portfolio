@@ -1,4 +1,6 @@
 ---
+import Astronaut from "../components/Astronaut.astro";
+
 interface Props {
   title?: string;
   description?: string;
@@ -128,6 +130,7 @@ const {
     </nav>
 
     <!-- Cursor glow (desktop only) -->
+    <Astronaut />
     <main class="relative z-10">
       <div id="cursor-glow" class="cursor-glow hidden md:block" aria-hidden="true"></div>
       <slot />

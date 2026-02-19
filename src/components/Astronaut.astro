@@ -1,0 +1,583 @@
+<div
+  id="astronaut"
+  class="pointer-events-none fixed z-30 hidden opacity-0 dark:opacity-100"
+  aria-hidden="true"
+>
+  <div class="astronaut-glow"></div>
+  <img
+    src="/astronaut.svg"
+    alt=""
+    class="astronaut-img h-[210px] w-[210px]"
+  />
+</div>
+
+<style>
+  #astronaut {
+    will-change: left, top;
+  }
+
+  .astronaut-glow {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 300px;
+    height: 300px;
+    transform: translate(-50%, -50%);
+    background: radial-gradient(circle, rgba(5, 150, 105, 0.15) 0%, transparent 70%);
+    filter: blur(20px);
+    pointer-events: none;
+    z-index: -1;
+    will-change: opacity, transform;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+  }
+
+  /* Glow pulses in sync with idle float */
+  @keyframes glow-pulse {
+    0%, 100% { opacity: 0.1; }
+    50% { opacity: 0.2; }
+  }
+
+  #astronaut.idle .astronaut-glow {
+    animation: glow-pulse 3s ease-in-out infinite;
+  }
+
+  /* Glow intensifies on scroll */
+  #astronaut.scrolling .astronaut-glow {
+    opacity: 0.25;
+    transform: translate(-50%, -50%) scale(1.1);
+  }
+
+  /* Dash transition glow flicker */
+  #astronaut.dashing .astronaut-glow {
+    opacity: 0.3;
+    transform: translate(-50%, -50%) scale(1.3);
+    transition: opacity 0.15s ease, transform 0.15s ease;
+  }
+
+  .astronaut-img {
+    position: relative;
+    filter: drop-shadow(0 0 10px rgba(5, 150, 105, 0.25));
+    will-change: transform;
+    transition: filter 0.3s ease;
+  }
+
+  /* Idle floating animation (scroll mode) */
+  @keyframes astronaut-float {
+    0%, 100% { transform: translateY(-8px) rotate(-3deg); }
+    50% { transform: translateY(8px) rotate(3deg); }
+  }
+
+  #astronaut.idle .astronaut-img {
+    animation: astronaut-float 3s ease-in-out infinite;
+  }
+
+  /* Hover: intensified glow on img */
+  #astronaut.hovered .astronaut-img {
+    filter: drop-shadow(0 0 30px rgba(5, 150, 105, 0.35));
+  }
+
+  /* Dash scale boost */
+  #astronaut.dashing .astronaut-img {
+    transform: scale(1.2);
+    transition: transform 200ms ease-out;
+  }
+
+  /* Nav-click boost */
+  #astronaut.boost .astronaut-img {
+    transform: scale(1.1);
+    transition: transform 200ms ease-out;
+  }
+</style>
+
+<script>
+  const astronaut = document.getElementById("astronaut");
+  const img = astronaut?.querySelector<HTMLElement>(".astronaut-img");
+  const glow = astronaut?.querySelector<HTMLElement>(".astronaut-glow");
+
+  if (astronaut && img && glow) {
+    // ── Constants ──
+    const BASE_SIZE = 210;
+    const MIN_SIZE = 140;
+    const MIN_VIEWPORT = 1280;   // don't show below this width
+    const SCROLL_THRESHOLD = 100;
+    const MIN_MARGIN = 160;      // minimum left margin (px) needed to show
+
+    // Scroll-mode lerp
+    const LERP_Y = 0.06;
+    const LERP_X = 0.08;
+    const LERP_ROT = 0.06;
+    const MAX_TILT = 15;
+    const DRIFT_AMOUNT = 20;
+
+    // Hero orbit
+    const HERO_CYCLE = 16000;
+    const HERO_MAX_TILT = 10;
+    const ORBIT_PADDING = 60;
+
+    // Mouse follow / hover
+    const HOVER_RADIUS = 180;
+    const MOUSE_LERP = 0.04;
+    const SCALE_LERP = 0.06;
+    const HOVER_SCALE = 1.2;
+
+    // ── Dynamic sizing based on available margin ──
+    let SIZE = BASE_SIZE;
+    let isVisible = false;
+
+    function getContentMarginLeft(): number {
+      const content = document.querySelector("#hero .mx-auto") ||
+                      document.querySelector("main .mx-auto") ||
+                      document.querySelector(".mx-auto.max-w-5xl");
+      if (!content) return window.innerWidth * 0.1;
+      return content.getBoundingClientRect().left;
+    }
+
+    function updateVisibility() {
+      const vw = window.innerWidth;
+
+      if (vw < MIN_VIEWPORT) {
+        if (isVisible) {
+          astronaut.style.display = "none";
+          isVisible = false;
+        }
+        return;
+      }
+
+      // Calculate available left margin
+      const margin = getContentMarginLeft();
+      const availableSpace = margin - 30; // 30px breathing room from content edge
+
+      if (availableSpace < MIN_SIZE) {
+        // Not enough space even for minimum size
+        if (isVisible) {
+          astronaut.style.display = "none";
+          isVisible = false;
+        }
+        return;
+      }
+
+      // Scale astronaut to fit available space (capped at BASE_SIZE)
+      SIZE = Math.min(BASE_SIZE, Math.max(MIN_SIZE, availableSpace - 20));
+
+      // Update image size
+      img.style.width = SIZE + "px";
+      img.style.height = SIZE + "px";
+
+      if (!isVisible) {
+        astronaut.style.display = "block";
+        isVisible = true;
+      }
+    }
+
+    // ── State ──
+    type Mode = "hero" | "scroll" | "dash-to-scroll" | "glide-to-hero";
+    let mode: Mode = window.scrollY < SCROLL_THRESHOLD ? "hero" : "scroll";
+
+    let currentX = 0;
+    let currentY = 0;
+    let currentRot = 0;
+
+    // Scroll mode state
+    let scrollTargetY = 0;
+    let scrollBaseX = 0;
+    let scrollXOffset = 0;
+    let targetXOffset = 0;
+    let lastScrollY = window.scrollY;
+    let scrollVelocity = 0;
+    let idleTimer: ReturnType<typeof setTimeout> | null = null;
+    let isIdle = false;
+
+    // Mouse state
+    let mouseX = -9999;
+    let mouseY = -9999;
+    let isHovered = false;
+    let currentScale = 1;
+
+    // Hero orbit state
+    let heroStartTime = performance.now();
+
+    // Transition state
+    let transStartTime = 0;
+    let transStartX = 0;
+    let transStartY = 0;
+    let transStartRot = 0;
+    let transDuration = 0;
+
+    // ── Catmull-Rom spline interpolation ──
+    function catmullRom(p0: number, p1: number, p2: number, p3: number, t: number): number {
+      const t2 = t * t;
+      const t3 = t2 * t;
+      return 0.5 * (
+        (2 * p1) +
+        (-p0 + p2) * t +
+        (2 * p0 - 5 * p1 + 4 * p2 - p3) * t2 +
+        (-p0 + 3 * p1 - 3 * p2 + p3) * t3
+      );
+    }
+
+    // ── Compute waypoints around the hero content ──
+    function getOrbitWaypoints(): { x: number; y: number }[] {
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+      const nav = document.querySelector("nav");
+      const hero = document.getElementById("hero");
+      const contentDiv = hero?.querySelector(".mx-auto");
+
+      const navBottom = nav ? nav.getBoundingClientRect().bottom + 15 : 80;
+
+      if (!contentDiv) {
+        // Fallback: simple rectangle orbit in empty space
+        return [
+          { x: vw * 0.7, y: navBottom + 20 },
+          { x: vw - SIZE - 20, y: vh * 0.35 },
+          { x: vw * 0.6, y: vh * 0.75 },
+          { x: 20, y: vh * 0.6 },
+          { x: 20, y: navBottom + 20 },
+          { x: vw * 0.35, y: navBottom + 20 },
+        ];
+      }
+
+      const cr = contentDiv.getBoundingClientRect();
+      const pad = ORBIT_PADDING;
+      const half = SIZE / 2;
+
+      // Safe bounds: stay within viewport and outside content
+      const safeLeft = Math.max(10, cr.left - SIZE - pad * 0.3);
+      const safeRight = Math.min(cr.right + pad, vw - SIZE - 10);
+      const safeTop = Math.max(navBottom + 10, cr.top - SIZE - pad);
+      const safeBottom = Math.min(cr.bottom + pad, vh - SIZE - 10);
+
+      // Waypoints trace a path around the content block (clockwise)
+      return [
+        // 0: Top-center — above the content
+        { x: Math.min(cr.left + cr.width * 0.4 - half, safeRight), y: safeTop },
+        // 1: Top-right — above content, right side
+        { x: safeRight, y: safeTop + 20 },
+        // 2: Mid-right — to the right of content, upper
+        { x: safeRight, y: cr.top + cr.height * 0.25 },
+        // 3: Mid-right lower — to the right of content, lower
+        { x: safeRight, y: cr.top + cr.height * 0.7 },
+        // 4: Bottom-right — below content, right
+        { x: Math.min(cr.left + cr.width * 0.7, safeRight), y: safeBottom },
+        // 5: Bottom-center — below content
+        { x: Math.max(cr.left + cr.width * 0.2 - half, safeLeft), y: safeBottom },
+        // 6: Bottom-left — below content, left
+        { x: safeLeft, y: safeBottom - 20 },
+        // 7: Left side — left of content
+        { x: safeLeft, y: cr.top + cr.height * 0.4 },
+      ];
+    }
+
+    // ── Get hero orbit position from time ──
+    function getHeroPos(time: number): { x: number; y: number; rot: number } {
+      const waypoints = getOrbitWaypoints();
+      const n = waypoints.length;
+
+      // Progress through the orbit (0..1 maps to full loop)
+      const progress = ((time - heroStartTime) % HERO_CYCLE) / HERO_CYCLE;
+      const totalT = progress * n;
+      const segment = Math.floor(totalT) % n;
+      const t = totalT - Math.floor(totalT); // 0..1 within segment
+
+      // Get 4 control points for Catmull-Rom (wrapping around)
+      const p0 = waypoints[(segment - 1 + n) % n];
+      const p1 = waypoints[segment];
+      const p2 = waypoints[(segment + 1) % n];
+      const p3 = waypoints[(segment + 2) % n];
+
+      const x = catmullRom(p0.x, p1.x, p2.x, p3.x, t);
+      const y = catmullRom(p0.y, p1.y, p2.y, p3.y, t);
+
+      // Tilt based on movement direction
+      const dt = 0.01;
+      const tNext = t + dt;
+      const xNext = catmullRom(p0.x, p1.x, p2.x, p3.x, Math.min(tNext, 1));
+      const yNext = catmullRom(p0.y, p1.y, p2.y, p3.y, Math.min(tNext, 1));
+      const dx = xNext - x;
+      const dy = yNext - y;
+      const angle = Math.atan2(dy, dx) * (180 / Math.PI);
+      const tilt = Math.max(-HERO_MAX_TILT, Math.min(HERO_MAX_TILT, angle * 0.15));
+
+      return { x, y, rot: tilt };
+    }
+
+    // ── Scroll mode helpers ──
+    function getScrollTargetY() {
+      const scrollY = window.scrollY;
+      const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+      if (maxScroll <= 0) return window.innerHeight * 0.2;
+      const ratio = scrollY / maxScroll;
+      return window.innerHeight * (0.1 + ratio * 0.7);
+    }
+
+    function getScrollBaseX() {
+      // Center astronaut in the left margin, never overlapping content
+      const margin = getContentMarginLeft();
+      const centered = Math.max(10, (margin - SIZE) / 2);
+      return centered;
+    }
+
+    function enterIdle() {
+      if (!isIdle) {
+        isIdle = true;
+        astronaut.classList.add("idle");
+      }
+    }
+
+    function exitIdle() {
+      if (isIdle) {
+        isIdle = false;
+        astronaut.classList.remove("idle");
+        img.style.transform = "";
+      }
+    }
+
+    // ── Transition easing ──
+    function easeOutCubic(t: number) {
+      return 1 - Math.pow(1 - t, 3);
+    }
+
+    function dashEase(t: number) {
+      return 1 - Math.pow(1 - t, 4);
+    }
+
+    // ── Start transitions ──
+    function startDashToScroll() {
+      mode = "dash-to-scroll";
+      transStartTime = performance.now();
+      transStartX = currentX;
+      transStartY = currentY;
+      transStartRot = currentRot;
+      transDuration = 400;
+
+      astronaut.classList.remove("idle", "scrolling");
+      astronaut.classList.add("dashing");
+      isIdle = false;
+
+      setTimeout(() => {
+        astronaut.classList.remove("dashing");
+      }, 300);
+    }
+
+    function startGlideToHero() {
+      mode = "glide-to-hero";
+      transStartTime = performance.now();
+      transStartX = currentX;
+      transStartY = currentY;
+      transStartRot = currentRot;
+      transDuration = 600;
+
+      // Sync hero orbit so the glide target is the nearest waypoint
+      heroStartTime = performance.now() - (HERO_CYCLE * 0.01);
+
+      astronaut.classList.remove("idle", "scrolling");
+      isIdle = false;
+    }
+
+    // ── Apply position ──
+    function applyPosition(x: number, y: number, rot: number) {
+      currentX = x;
+      currentY = y;
+      currentRot = rot;
+      astronaut.style.left = x + "px";
+      astronaut.style.top = y + "px";
+      img.style.transform = `rotate(${rot.toFixed(1)}deg) scale(${currentScale.toFixed(3)})`;
+    }
+
+    // ── Mouse proximity check ──
+    function updateMouseHover(finalX: number, finalY: number): { x: number; y: number } {
+      const centerX = finalX + SIZE / 2;
+      const centerY = finalY + SIZE / 2;
+      const dx = mouseX - centerX;
+      const dy = mouseY - centerY;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+
+      const wasHovered = isHovered;
+      isHovered = dist < HOVER_RADIUS;
+
+      if (isHovered !== wasHovered) {
+        if (isHovered) {
+          astronaut.classList.add("hovered");
+          glow.style.opacity = "0.25";
+          glow.style.transform = "translate(-50%, -50%) scale(1.1)";
+        } else {
+          astronaut.classList.remove("hovered");
+          glow.style.opacity = "";
+          glow.style.transform = "";
+        }
+      }
+
+      if (isHovered) {
+        const attractX = finalX + (mouseX - centerX) * MOUSE_LERP;
+        const attractY = finalY + (mouseY - centerY) * MOUSE_LERP;
+        return { x: attractX, y: attractY };
+      }
+
+      return { x: finalX, y: finalY };
+    }
+
+    // ── Main loop ──
+    function tick(now: number) {
+      if (!isVisible) {
+        requestAnimationFrame(tick);
+        return;
+      }
+
+      const newScrollY = window.scrollY;
+      const scrollDelta = newScrollY - lastScrollY;
+      scrollVelocity = scrollDelta;
+      lastScrollY = newScrollY;
+
+      // Mode switching
+      if (mode === "hero" && newScrollY >= SCROLL_THRESHOLD) {
+        startDashToScroll();
+      } else if (mode === "scroll" && newScrollY < SCROLL_THRESHOLD) {
+        startGlideToHero();
+      }
+
+      // Lerp scale
+      const targetScale = isHovered ? HOVER_SCALE : 1;
+      currentScale += (targetScale - currentScale) * SCALE_LERP;
+
+      switch (mode) {
+        case "hero": {
+          const pos = getHeroPos(now);
+          const m = updateMouseHover(pos.x, pos.y);
+          applyPosition(m.x, m.y, pos.rot);
+          break;
+        }
+
+        case "dash-to-scroll": {
+          const elapsed = now - transStartTime;
+          const progress = Math.min(elapsed / transDuration, 1);
+          const ease = dashEase(progress);
+
+          const targetX = getScrollBaseX();
+          const targetY = getScrollTargetY();
+
+          const x = transStartX + (targetX - transStartX) * ease;
+          const y = transStartY + (targetY - transStartY) * ease;
+
+          const rotKick = progress < 0.3
+            ? transStartRot + (20 - transStartRot) * (progress / 0.3)
+            : 20 * (1 - (progress - 0.3) / 0.7);
+
+          applyPosition(x, y, rotKick);
+
+          if (progress >= 1) {
+            mode = "scroll";
+            enterIdle();
+          }
+          break;
+        }
+
+        case "glide-to-hero": {
+          const elapsed = now - transStartTime;
+          const progress = Math.min(elapsed / transDuration, 1);
+          const ease = easeOutCubic(progress);
+
+          const heroTarget = getHeroPos(now + (transDuration - elapsed) * 0.5);
+          const x = transStartX + (heroTarget.x - transStartX) * ease;
+          const y = transStartY + (heroTarget.y - transStartY) * ease;
+          const rot = transStartRot + (heroTarget.rot - transStartRot) * ease;
+
+          applyPosition(x, y, rot);
+
+          if (progress >= 1) {
+            mode = "hero";
+            heroStartTime = now;
+          }
+
+          if (newScrollY >= SCROLL_THRESHOLD) {
+            startDashToScroll();
+          }
+          break;
+        }
+
+        case "scroll": {
+          scrollTargetY = getScrollTargetY();
+          scrollBaseX = getScrollBaseX();
+
+          targetXOffset = -Math.min(Math.abs(scrollVelocity) * 0.8, DRIFT_AMOUNT) * Math.sign(scrollVelocity || 1);
+          scrollXOffset += (targetXOffset - scrollXOffset) * LERP_X;
+
+          const targetX = scrollBaseX + scrollXOffset;
+          const targetY = scrollTargetY;
+
+          let x = currentX + (targetX - currentX) * LERP_X;
+          let y = currentY + (targetY - currentY) * LERP_Y;
+
+          const targetRot = Math.max(-MAX_TILT, Math.min(MAX_TILT, scrollVelocity * 1.5));
+          const rot = currentRot + (targetRot - currentRot) * LERP_ROT;
+
+          const m = updateMouseHover(x, y);
+          x = m.x;
+          y = m.y;
+
+          if (!isIdle || isHovered) {
+            applyPosition(x, y, rot);
+          } else {
+            currentX = x;
+            currentY = y;
+            currentRot = rot;
+            astronaut.style.left = x + "px";
+            astronaut.style.top = y + "px";
+          }
+
+          if (Math.abs(scrollVelocity) > 0.5) {
+            exitIdle();
+            astronaut.classList.add("scrolling");
+            if (idleTimer) clearTimeout(idleTimer);
+            idleTimer = setTimeout(() => {
+              enterIdle();
+              astronaut.classList.remove("scrolling");
+            }, 800);
+          }
+          break;
+        }
+      }
+
+      requestAnimationFrame(tick);
+    }
+
+    // ── Initialize ──
+    updateVisibility();
+
+    if (isVisible) {
+      if (mode === "hero") {
+        const pos = getHeroPos(performance.now());
+        applyPosition(pos.x, pos.y, pos.rot);
+      } else {
+        scrollBaseX = getScrollBaseX();
+        currentX = scrollBaseX;
+        currentY = getScrollTargetY();
+        applyPosition(currentX, currentY, 0);
+        enterIdle();
+      }
+    }
+
+    requestAnimationFrame(tick);
+
+    // Nav click boost
+    document.querySelectorAll('a[href^="#"]').forEach((link) => {
+      link.addEventListener("click", () => {
+        astronaut.classList.add("boost");
+        setTimeout(() => astronaut.classList.remove("boost"), 200);
+      });
+    });
+
+    // Recalculate on resize
+    window.addEventListener("resize", updateVisibility);
+
+    // Track mouse globally
+    document.addEventListener("mousemove", (e) => {
+      mouseX = e.clientX;
+      mouseY = e.clientY;
+    });
+
+    document.addEventListener("mouseleave", () => {
+      mouseX = -9999;
+      mouseY = -9999;
+    });
+  }
+</script>
