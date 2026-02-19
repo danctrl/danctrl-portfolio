@@ -148,7 +148,7 @@
     }
 
     // ── State ──
-    type Mode = "hero" | "scroll" | "dash-to-scroll" | "glide-to-hero";
+    type Mode = "hero" | "scroll" | "dash-to-scroll";
     let mode: Mode = window.scrollY < SCROLL_THRESHOLD ? "hero" : "scroll";
 
     let currentX = 0;
@@ -191,10 +191,6 @@
     let transStartY = 0;
     let transStartRot = 0;
     let transDuration = 0;
-    let glideTargetX = 0;
-    let glideTargetY = 0;
-    let glideTargetRot = 0;
-    let glideOrbitTime = 0; // the orbit time that corresponds to the glide target
 
     // ── Catmull-Rom spline interpolation ──
     function catmullRom(p0: number, p1: number, p2: number, p3: number, t: number): number {
@@ -433,23 +429,19 @@
       }, 300);
     }
 
+    // Glide-to-hero: switch to hero mode, converge smoothly with velocity cap
+    let heroConverging = false;
+    const HERO_MAX_SPEED = 6;  // max pixels per frame during convergence (smooth glide)
+
     function startGlideToHero() {
-      mode = "glide-to-hero";
-      transStartTime = performance.now();
-      transStartX = currentX;
-      transStartY = currentY;
-      transStartRot = currentRot;
-      transDuration = 1200;
-
-      // Recalculate waypoints since hero content may have shifted
-      waypointsDirty = true;
-      arcTableDirty = true;
-
-      // Set heroOrbitTime to nearest orbit phase so the blend target is close
-      heroOrbitTime = findNearestOrbitPhase(currentX, currentY);
+      mode = "hero";
+      heroConverging = true;
 
       astronaut.classList.remove("idle", "scrolling");
       isIdle = false;
+
+      // Don't compute waypoints yet — scroll is still settling.
+      // Hero tick will recompute each frame during convergence.
     }
 
     // ── Time-based exponential smoothing ──
@@ -528,13 +520,13 @@
         startGlideToHero();
       }
 
-      // Smooth scale (hover > glide transition > fast scroll > normal)
+      // Smooth scale (hover > transition > fast scroll > normal)
       const SCROLL_SCALE = 1.15;
       const SCROLL_SCALE_THRESHOLD = 15;
       const absSmooth = Math.abs(smoothScrollVel);
-      const isGliding = mode === "glide-to-hero" || mode === "dash-to-scroll";
+      const isTransitioning = mode === "dash-to-scroll" || heroConverging;
       const targetScale = isHovered ? HOVER_SCALE
-        : isGliding ? SCROLL_SCALE
+        : isTransitioning ? SCROLL_SCALE
         : absSmooth > SCROLL_SCALE_THRESHOLD ? SCROLL_SCALE
         : 1;
       currentScale += (targetScale - currentScale) * damp(SMOOTH_SCALE, dt);
@@ -554,18 +546,45 @@
       }
 
       // Advance virtual orbit time (slows down when hovered)
-      if (mode === "hero" || mode === "glide-to-hero") {
+      if (mode === "hero") {
         const speed = isHovered ? HOVER_SPEED : 1;
         heroOrbitTime += dt * 1000 * speed;
       }
 
       switch (mode) {
         case "hero": {
+          // During convergence, recompute waypoints each frame as scroll settles
+          if (heroConverging) {
+            waypointsDirty = true;
+            arcTableDirty = true;
+            heroOrbitTime = findNearestOrbitPhase(currentX, currentY);
+          }
+
           const pos = getHeroPos(now);
-          // Smooth toward orbit target (absorbs any waypoint shifts)
           const hf = damp(HERO_SMOOTH, dt);
-          let hx = currentX + (pos.x - currentX) * hf;
-          let hy = currentY + (pos.y - currentY) * hf;
+          let dx = (pos.x - currentX) * hf;
+          let dy = (pos.y - currentY) * hf;
+
+          // Cap velocity during convergence for buttery-smooth glide
+          if (heroConverging) {
+            const moveDist = Math.sqrt(dx * dx + dy * dy);
+            if (moveDist > HERO_MAX_SPEED) {
+              const cap = HERO_MAX_SPEED / moveDist;
+              dx *= cap;
+              dy *= cap;
+            }
+            // End convergence once close to the orbit
+            const dist = Math.sqrt((pos.x - currentX) ** 2 + (pos.y - currentY) ** 2);
+            if (dist < 20) {
+              heroConverging = false;
+              // Cache the final waypoints now that scroll has settled
+              waypointsDirty = true;
+              arcTableDirty = true;
+            }
+          }
+
+          let hx = currentX + dx;
+          let hy = currentY + dy;
           const hr = currentRot + (pos.rot - currentRot) * hf;
           const m = updateMouseHover(hx, hy);
           applyPosition(m.x, m.y, hr);
@@ -596,33 +615,6 @@
           break;
         }
 
-        case "glide-to-hero": {
-          const elapsed = now - transStartTime;
-          const progress = Math.min(elapsed / transDuration, 1);
-
-          // Quintic ease-in-out for ultra-smooth blend
-          const blend = progress < 0.5
-            ? 16 * progress * progress * progress * progress * progress
-            : 1 - Math.pow(-2 * progress + 2, 5) / 2;
-
-          const orbitPos = getHeroPos(now);
-
-          let x = transStartX + (orbitPos.x - transStartX) * blend;
-          let y = transStartY + (orbitPos.y - transStartY) * blend;
-          const rot = transStartRot + (orbitPos.rot - transStartRot) * blend;
-
-          const m = updateMouseHover(x, y);
-          applyPosition(m.x, m.y, rot);
-
-          if (progress >= 1) {
-            mode = "hero";
-          }
-
-          if (newScrollY >= SCROLL_THRESHOLD) {
-            startDashToScroll();
-          }
-          break;
-        }
 
         case "scroll": {
           scrollTargetY = getScrollTargetY();

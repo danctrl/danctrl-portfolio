@@ -17,45 +17,45 @@ const titles = [
         class="pointer-events-none absolute inset-0 z-10 overflow-hidden"
         aria-hidden="true"
     >
-        <!-- Circle -->
+        <!-- Circle — upper-left, near status pill -->
         <div
-            class="floating-shape draggable-shape pointer-events-auto absolute top-[15%] left-[10%] h-[60px] w-[60px] cursor-grab rounded-full border border-emerald-600/10 dark:border-emerald-500/20"
+            class="floating-shape draggable-shape pointer-events-auto absolute top-[18%] left-[12%] h-[60px] w-[60px] cursor-grab rounded-full border border-emerald-600/10 dark:border-emerald-500/20"
             style="animation-duration: 10s;"
         >
         </div>
-        <!-- Triangle -->
+        <!-- Triangle — lower-right, near buttons -->
         <svg
-            class="floating-shape draggable-shape pointer-events-auto absolute top-[60%] right-[12%] h-[50px] w-[50px] cursor-grab text-emerald-600/8 dark:text-emerald-500/15"
+            class="floating-shape draggable-shape pointer-events-auto absolute top-[68%] right-[15%] h-[50px] w-[50px] cursor-grab text-emerald-600/8 dark:text-emerald-500/15"
             style="animation-duration: 8s; animation-delay: -3s;"
             viewBox="0 0 50 50"
             fill="currentColor"
             ><polygon points="25,5 45,45 5,45"></polygon></svg
         >
-        <!-- Hexagon -->
+        <!-- Hexagon — right side, headline level -->
         <svg
-            class="floating-shape draggable-shape pointer-events-auto absolute top-[30%] right-[25%] h-[40px] w-[40px] cursor-grab text-emerald-600/6 dark:text-emerald-500/10"
+            class="floating-shape draggable-shape pointer-events-auto absolute top-[28%] right-[8%] h-[40px] w-[40px] cursor-grab text-emerald-600/6 dark:text-emerald-500/10"
             style="animation-duration: 12s; animation-delay: -5s;"
             viewBox="0 0 100 100"
             fill="currentColor"
             ><polygon points="50,3 97,25 97,75 50,97 3,75 3,25"></polygon></svg
         >
-        <!-- Small circle -->
+        <!-- Small circle — below content, left-of-center -->
         <div
-            class="floating-shape draggable-shape pointer-events-auto absolute bottom-[20%] left-[30%] h-[30px] w-[30px] cursor-grab rounded-full bg-emerald-600/6 dark:bg-emerald-500/10"
+            class="floating-shape draggable-shape pointer-events-auto absolute bottom-[15%] left-[25%] h-[30px] w-[30px] cursor-grab rounded-full bg-emerald-600/6 dark:bg-emerald-500/10"
             style="animation-duration: 13s; animation-delay: -4s;"
         >
         </div>
-        <!-- Diamond -->
+        <!-- Diamond — left margin, subtitle level -->
         <svg
-            class="floating-shape draggable-shape pointer-events-auto absolute top-[45%] left-[8%] h-[35px] w-[35px] cursor-grab text-emerald-600/8 dark:text-emerald-500/12"
+            class="floating-shape draggable-shape pointer-events-auto absolute top-[48%] left-[7%] h-[35px] w-[35px] cursor-grab text-emerald-600/8 dark:text-emerald-500/12"
             style="animation-duration: 11s; animation-delay: -2s;"
             viewBox="0 0 50 50"
             fill="currentColor"
             ><polygon points="25,2 48,25 25,48 2,25"></polygon></svg
         >
-        <!-- Square (rotated) -->
+        <!-- Square (rotated) — upper-right area -->
         <div
-            class="floating-shape draggable-shape pointer-events-auto absolute top-[75%] right-[30%] h-[25px] w-[25px] rotate-45 cursor-grab border border-emerald-600/10 dark:border-emerald-500/15"
+            class="floating-shape draggable-shape pointer-events-auto absolute top-[40%] right-[20%] h-[25px] w-[25px] rotate-45 cursor-grab border border-emerald-600/10 dark:border-emerald-500/15"
             style="animation-duration: 14s; animation-delay: -7s;"
         >
         </div>
@@ -163,6 +163,85 @@ const titles = [
 </script>
 
 <script>
+    // ── Content avoidance for floating shapes ──
+    // Nudge shapes away from interactive elements (buttons, headlines, status pill)
+    function avoidContent() {
+        const container = document.getElementById("shapes-container");
+        if (!container) return;
+        const cRect = container.getBoundingClientRect();
+
+        // Collect rects of all interactive/content elements in hero
+        const selectors = [
+            "#hero h1",
+            "#hero .btn-primary",
+            "#hero .btn-secondary",
+            "#hero .glass",         // status pill
+            "#typing-text",
+            "#hero p",
+        ];
+        const contentRects: DOMRect[] = [];
+        const PADDING = 50; // breathing room around content
+        selectors.forEach((sel) => {
+            document.querySelectorAll(sel).forEach((el) => {
+                const r = el.getBoundingClientRect();
+                contentRects.push(new DOMRect(
+                    r.left - PADDING,
+                    r.top - PADDING,
+                    r.width + PADDING * 2,
+                    r.height + PADDING * 2,
+                ));
+            });
+        });
+
+        // Check each shape and nudge if overlapping
+        container.querySelectorAll<HTMLElement>(".draggable-shape").forEach((shape) => {
+            // Skip shapes that have been dragged (have inline left set)
+            if (shape.style.left && shape.style.left !== "auto") return;
+
+            const sr = shape.getBoundingClientRect();
+            const shapeCX = sr.left + sr.width / 2;
+            const shapeCY = sr.top + sr.height / 2;
+
+            for (const cr of contentRects) {
+                if (
+                    sr.right > cr.left &&
+                    sr.left < cr.right &&
+                    sr.bottom > cr.top &&
+                    sr.top < cr.bottom
+                ) {
+                    // Overlapping — push to nearest edge
+                    const pushLeft = cr.left - sr.right;
+                    const pushRight = cr.right - sr.left;
+                    const pushUp = cr.top - sr.bottom;
+                    const pushDown = cr.bottom - sr.top;
+
+                    // Pick smallest push direction
+                    const pushes = [
+                        { dx: pushLeft, dy: 0, dist: Math.abs(pushLeft) },
+                        { dx: pushRight, dy: 0, dist: Math.abs(pushRight) },
+                        { dx: 0, dy: pushUp, dist: Math.abs(pushUp) },
+                        { dx: 0, dy: pushDown, dist: Math.abs(pushDown) },
+                    ];
+                    pushes.sort((a, b) => a.dist - b.dist);
+                    const best = pushes[0];
+
+                    // Convert to left/top positioning and apply
+                    const currentLeft = sr.left - cRect.left;
+                    const currentTop = sr.top - cRect.top;
+                    shape.style.left = (currentLeft + best.dx) + "px";
+                    shape.style.top = (currentTop + best.dy) + "px";
+                    shape.style.right = "auto";
+                    shape.style.bottom = "auto";
+                    break;
+                }
+            }
+        });
+    }
+
+    // Run after layout settles
+    requestAnimationFrame(() => requestAnimationFrame(avoidContent));
+    window.addEventListener("resize", avoidContent);
+
     // Interactive drag & throw for floating shapes
     document.querySelectorAll<HTMLElement>(".draggable-shape").forEach((shape) => {
         let isDragging = false;
