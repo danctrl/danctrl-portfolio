@@ -4,7 +4,7 @@ const projects = [
     title: "Podman-powered Homelab",
     description:
       "Lightweight homelab stack using Podman and systemd on RHEL. Containerized services with Traefik reverse proxy and Authentik authentication.",
-    status: "Live",
+    status: "Live" as const,
     image: "/homelab.png",
     stack: ["Podman", "RHEL", "Traefik", "Systemd", "DevOps"],
     link: "https://github.com/danctrl/podman-containers",
@@ -13,7 +13,7 @@ const projects = [
     title: "Stadium – Smart Home",
     description:
       "Local-first Home Assistant instance running in a KVM virtual machine on RHEL. 409 entities, Zigbee/Matter integration, automated backups, secured with Traefik + Authentik.",
-    status: "Live",
+    status: "Live" as const,
     image: "/smarthome.png",
     stack: ["Home Assistant", "KVM", "Zigbee", "Matter", "YAML"],
     link: "https://github.com/danctrl/home-assistant-stadium",
@@ -22,7 +22,7 @@ const projects = [
     title: "danctrl.dev Portfolio",
     description:
       "This website – built with Astro and Tailwind CSS, deployed on Cloudflare Pages with CI/CD. A meta-project showcasing DevOps thinking.",
-    status: "Building",
+    status: "Building" as const,
     image: "/portfolio.png",
     stack: ["Astro", "Tailwind CSS", "Cloudflare Pages", "TypeScript"],
     link: "https://github.com/danctrl/danctrl-portfolio",
@@ -31,7 +31,7 @@ const projects = [
     title: "danctrl.dev (Hugo)",
     description:
       "The original portfolio site – built with Hugo and deployed on Cloudflare Pages. Replaced by the current Astro-based version.",
-    status: "Archived",
+    status: "Archived" as const,
     image: "/portfolio.png",
     stack: ["Hugo", "Go Templates", "Cloudflare Pages", "CI/CD"],
     link: "https://github.com/danctrl/danctrl.dev",
@@ -40,7 +40,7 @@ const projects = [
     title: "my kita",
     description:
       "Web application helping parents in Berlin find and apply to kindergartens. Built during Le Wagon coding bootcamp as a team project.",
-    status: "Live",
+    status: "Archived" as const,
     image: "/mykita.png",
     stack: ["Ruby on Rails", "PostgreSQL", "JavaScript", "Bootstrap"],
     link: "https://github.com/lamoureuxmarie/my-kita",
@@ -69,22 +69,43 @@ const statusColors: Record<string, { bg: string; text: string; dot: string }> = 
     dot: "bg-blue-500",
   },
 };
+
+const isArchived = (status: string) => status === "Archived";
 ---
 
 <section id="projects" class="py-24">
   <div class="mx-auto max-w-5xl px-6">
-    <h2 class="fade-in mb-12 font-mono text-xl font-bold text-[#1a1a1a] sm:text-2xl dark:text-white">Projects</h2>
+    <div class="fade-in mb-12 flex items-center justify-between">
+      <h2 class="font-mono text-xl font-bold text-[#1a1a1a] sm:text-2xl dark:text-white">Projects</h2>
+      <button
+        id="archive-toggle"
+        class="group/switch inline-flex items-center gap-3 rounded-lg border border-black/5 bg-white/60 px-4 py-2 text-sm text-gray-600 backdrop-blur-xl transition-all duration-300 hover:border-emerald-500/50 hover:text-emerald-600 dark:border-white/10 dark:bg-white/5 dark:text-gray-400 dark:hover:border-emerald-500/50 dark:hover:text-emerald-400"
+      >
+        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M20 7H4a1 1 0 01-1-1V4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-1 1zM5 7v10a2 2 0 002 2h10a2 2 0 002-2V7M10 12h4" />
+        </svg>
+        <span>Archive</span>
+        <div class="relative h-5 w-9 rounded-full bg-gray-300 transition-colors duration-300 dark:bg-gray-600" id="switch-track">
+          <div class="absolute top-0.5 left-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform duration-300" id="switch-thumb"></div>
+        </div>
+      </button>
+    </div>
 
     <div class="grid gap-6 sm:grid-cols-2">
       {projects.map((project, i) => {
         const colors = statusColors[project.status];
+        const archived = isArchived(project.status);
         return (
           <a
             href={project.link}
             target="_blank"
             rel="noopener noreferrer"
-            class="project-card section-card group relative block fade-in overflow-hidden"
-            style={`transition-delay: ${i * 100}ms`}
+            class:list={[
+              "project-card section-card group relative block fade-in overflow-hidden",
+              archived && "archive-card",
+            ]}
+            data-status={archived ? "archived" : "active"}
+            style={archived ? "display: none;" : `transition-delay: ${i * 100}ms`}
           >
             {/* Thumbnail */}
             <div class="h-[200px] overflow-hidden bg-gray-100 dark:bg-white/5">
@@ -134,3 +155,100 @@ const statusColors: Record<string, { bg: string; text: string; dot: string }> = 
     </div>
   </div>
 </section>
+
+<script>
+  const toggle = document.getElementById("archive-toggle");
+  const track = document.getElementById("switch-track");
+  const thumb = document.getElementById("switch-thumb");
+  const activeCards = document.querySelectorAll<HTMLElement>('[data-status="active"]');
+  const archiveCards = document.querySelectorAll<HTMLElement>('[data-status="archived"]');
+
+  let isOpen = false;
+
+  toggle?.addEventListener("click", () => {
+    if (isOpen) {
+      showActive();
+    } else {
+      showArchive();
+    }
+  });
+
+  function setSwitchOn() {
+    if (track) { track.style.backgroundColor = "#059669"; }
+    if (thumb) { thumb.style.transform = "translateX(16px)"; }
+  }
+
+  function setSwitchOff() {
+    if (track) { track.style.backgroundColor = ""; }
+    if (thumb) { thumb.style.transform = ""; }
+  }
+
+  function showArchive() {
+    isOpen = true;
+    setSwitchOn();
+
+    // Fade out active cards
+    activeCards.forEach((card) => {
+      card.style.transition = "opacity 300ms ease-in, transform 300ms ease-in";
+      card.style.opacity = "0";
+      card.style.transform = "translateY(10px)";
+    });
+
+    setTimeout(() => {
+      activeCards.forEach((card) => { card.style.display = "none"; });
+
+      // Fade in archive cards
+      archiveCards.forEach((card, i) => {
+        card.style.display = "";
+        card.style.opacity = "0";
+        card.style.transform = "translateY(20px) scale(0.95)";
+        card.style.transition = "none";
+
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            card.style.transition = `opacity 500ms ease-out ${i * 150}ms, transform 500ms ease-out ${i * 150}ms`;
+            card.style.opacity = "0.85";
+            card.style.transform = "translateY(0) scale(1)";
+          });
+        });
+      });
+    }, 350);
+  }
+
+  function showActive() {
+    isOpen = false;
+    setSwitchOff();
+
+    // Fade out archive cards
+    const cards = Array.from(archiveCards).reverse();
+    cards.forEach((card, i) => {
+      card.style.transition = `opacity 300ms ease-in ${i * 150}ms, transform 300ms ease-in ${i * 150}ms`;
+      card.style.opacity = "0";
+      card.style.transform = "translateY(10px)";
+    });
+
+    const hideDelay = 300 + (cards.length - 1) * 150 + 50;
+    setTimeout(() => {
+      archiveCards.forEach((card) => {
+        card.style.display = "none";
+        card.style.transition = "none";
+      });
+
+      // Fade in active cards
+      activeCards.forEach((card, i) => {
+        card.style.display = "";
+        card.style.opacity = "0";
+        card.style.transform = "translateY(20px) scale(0.95)";
+        card.style.transition = "none";
+
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            card.style.transition = `opacity 500ms ease-out ${i * 150}ms, transform 500ms ease-out ${i * 150}ms`;
+            card.style.opacity = "1";
+            card.style.transform = "translateY(0) scale(1)";
+          });
+        });
+      });
+    }, hideDelay);
+  }
+</script>
