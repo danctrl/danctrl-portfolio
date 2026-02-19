@@ -202,6 +202,10 @@
     let transStartY = 0;
     let transStartRot = 0;
     let transDuration = 0;
+    let glideTargetX = 0;
+    let glideTargetY = 0;
+    let glideTargetRot = 0;
+    let glideOrbitTime = 0; // the orbit time that corresponds to the glide target
 
     // ── Catmull-Rom spline interpolation ──
     function catmullRom(p0: number, p1: number, p2: number, p3: number, t: number): number {
@@ -301,6 +305,28 @@
       return { x, y, rot: tilt };
     }
 
+    // ── Find nearest orbit time to a given position ──
+    function findNearestOrbitTime(px: number, py: number): number {
+      // Sample the orbit at many points and find the closest one
+      const samples = 64;
+      let bestDist = Infinity;
+      let bestTime = 0;
+
+      for (let i = 0; i < samples; i++) {
+        const sampleTime = heroStartTime + (i / samples) * HERO_CYCLE;
+        const pos = getHeroPos(sampleTime);
+        const dx = pos.x - px;
+        const dy = pos.y - py;
+        const dist = dx * dx + dy * dy;
+        if (dist < bestDist) {
+          bestDist = dist;
+          bestTime = sampleTime;
+        }
+      }
+
+      return bestTime;
+    }
+
     // ── Scroll mode helpers ──
     function getScrollTargetY() {
       const scrollY = window.scrollY;
@@ -365,10 +391,20 @@
       transStartX = currentX;
       transStartY = currentY;
       transStartRot = currentRot;
-      transDuration = 600;
+      transDuration = 800; // longer for smoother feel
 
-      // Sync hero orbit so the glide target is the nearest waypoint
-      heroStartTime = performance.now() - (HERO_CYCLE * 0.01);
+      // Set a temporary heroStartTime so we can sample the orbit
+      heroStartTime = performance.now();
+
+      // Find the orbit point closest to current position
+      const nearestTime = findNearestOrbitTime(currentX, currentY);
+      const target = getHeroPos(nearestTime);
+      glideTargetX = target.x;
+      glideTargetY = target.y;
+      glideTargetRot = target.rot;
+
+      // Store the orbit offset so hero mode continues seamlessly from this point
+      glideOrbitTime = nearestTime;
 
       astronaut.classList.remove("idle", "scrolling");
       isIdle = false;
@@ -458,9 +494,9 @@
           const x = transStartX + (targetX - transStartX) * ease;
           const y = transStartY + (targetY - transStartY) * ease;
 
-          const rotKick = progress < 0.3
-            ? transStartRot + (20 - transStartRot) * (progress / 0.3)
-            : 20 * (1 - (progress - 0.3) / 0.7);
+          // Smooth rotation: kick to 15deg then ease back to 0
+          const rotPeak = 15;
+          const rotKick = rotPeak * Math.sin(progress * Math.PI);
 
           applyPosition(x, y, rotKick);
 
@@ -474,18 +510,23 @@
         case "glide-to-hero": {
           const elapsed = now - transStartTime;
           const progress = Math.min(elapsed / transDuration, 1);
-          const ease = easeOutCubic(progress);
+          // Smooth ease: slow start, slow end for natural feel
+          const ease = progress < 0.5
+            ? 4 * progress * progress * progress
+            : 1 - Math.pow(-2 * progress + 2, 3) / 2;
 
-          const heroTarget = getHeroPos(now + (transDuration - elapsed) * 0.5);
-          const x = transStartX + (heroTarget.x - transStartX) * ease;
-          const y = transStartY + (heroTarget.y - transStartY) * ease;
-          const rot = transStartRot + (heroTarget.rot - transStartRot) * ease;
+          const x = transStartX + (glideTargetX - transStartX) * ease;
+          const y = transStartY + (glideTargetY - transStartY) * ease;
+          const rot = transStartRot + (glideTargetRot - transStartRot) * ease;
 
           applyPosition(x, y, rot);
 
           if (progress >= 1) {
             mode = "hero";
-            heroStartTime = now;
+            // Sync heroStartTime so the orbit continues exactly from the glide target
+            // glideOrbitTime = heroStartTime + orbitOffset, so orbitOffset = glideOrbitTime - heroStartTime
+            const orbitOffset = glideOrbitTime - heroStartTime;
+            heroStartTime = now - orbitOffset;
           }
 
           if (newScrollY >= SCROLL_THRESHOLD) {
