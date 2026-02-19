@@ -54,6 +54,10 @@
   const glow = astronaut?.querySelector<HTMLElement>(".astronaut-glow");
 
   if (astronaut && img && glow) {
+    const astro = astronaut!;
+    const astroImg = img!;
+    const astroGlow = glow!;
+
     // ── Constants ──
     const BASE_SIZE = 210;
     const MIN_SIZE = 140;
@@ -85,19 +89,19 @@
     function updateVisibility() {
       const vw = window.innerWidth;
       if (vw < MIN_VIEWPORT) {
-        if (isVisible) { astronaut.style.display = "none"; isVisible = false; }
+        if (isVisible) { astro.style.display = "none"; isVisible = false; }
         return;
       }
       const margin = getContentMarginLeft();
       const space = margin - 30;
       if (space < MIN_SIZE) {
-        if (isVisible) { astronaut.style.display = "none"; isVisible = false; }
+        if (isVisible) { astro.style.display = "none"; isVisible = false; }
         return;
       }
       SIZE = Math.min(BASE_SIZE, Math.max(MIN_SIZE, space - 20));
-      img.style.width = SIZE + "px";
-      img.style.height = SIZE + "px";
-      if (!isVisible) { astronaut.style.display = "block"; isVisible = true; }
+      astroImg.style.width = SIZE + "px";
+      astroImg.style.height = SIZE + "px";
+      if (!isVisible) { astro.style.display = "block"; isVisible = true; }
     }
 
     // ── State ──
@@ -188,13 +192,13 @@
 
       if (isHovered !== wasHovered) {
         if (isHovered) {
-          astronaut.classList.add("hovered");
-          glow.style.opacity = "0.25";
-          glow.style.transform = "translate(-50%, -50%) scale(1.1)";
+          astro.classList.add("hovered");
+          astroGlow.style.opacity = "0.25";
+          astroGlow.style.transform = "translate(-50%, -50%) scale(1.1)";
         } else {
-          astronaut.classList.remove("hovered");
-          glow.style.opacity = "";
-          glow.style.transform = "";
+          astro.classList.remove("hovered");
+          astroGlow.style.opacity = "";
+          astroGlow.style.transform = "";
         }
       }
 
@@ -223,11 +227,11 @@
       // Dash detection: boost smoothing speed briefly when crossing threshold
       if (!isDashing && newScrollY >= SCROLL_THRESHOLD && currentY < window.innerHeight * 0.3) {
         isDashing = true;
-        astronaut.classList.add("scrolling");
+        astro.classList.add("scrolling");
         if (dashTimer) clearTimeout(dashTimer);
         dashTimer = setTimeout(() => {
           isDashing = false;
-          astronaut.classList.remove("scrolling");
+          astro.classList.remove("scrolling");
         }, 500);
       }
 
@@ -254,10 +258,10 @@
 
         // Scrolling glow
         if (Math.abs(scrollVelocity) > 0.5) {
-          astronaut.classList.add("scrolling");
+          astro.classList.add("scrolling");
           if (dashTimer) clearTimeout(dashTimer);
           dashTimer = setTimeout(() => {
-            astronaut.classList.remove("scrolling");
+            astro.classList.remove("scrolling");
           }, 800);
         }
       }
@@ -296,8 +300,8 @@
       currentScale += (targetScale - currentScale) * damp(SMOOTH_SCALE, dt);
 
       // ── 5. Apply ──
-      astronaut.style.transform = `translate3d(${currentX.toFixed(1)}px, ${currentY.toFixed(1)}px, 0)`;
-      img.style.transform = `rotate(${currentRot.toFixed(1)}deg) scale(${currentScale.toFixed(3)})`;
+      astro.style.transform = `translate3d(${currentX.toFixed(1)}px, ${currentY.toFixed(1)}px, 0)`;
+      astroImg.style.transform = `rotate(${currentRot.toFixed(1)}deg) scale(${currentScale.toFixed(3)})`;
 
       // ── 6. Timeline dots ──
       updateTimelineDots();

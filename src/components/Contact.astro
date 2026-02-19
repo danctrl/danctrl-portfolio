@@ -19,6 +19,9 @@
         </p>
 
         <form action="/api/contact" method="POST" class="flex flex-col gap-5">
+          <!-- Honeypot: hidden from real users, bots fill it in -->
+          <input type="text" name="website" class="hidden" tabindex="-1" autocomplete="off" aria-hidden="true" />
+
           <div>
             <label for="name" class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Name</label>
             <input
@@ -56,7 +59,7 @@
           </div>
 
           <!-- Cloudflare Turnstile (rendered on first submit) -->
-          <div id="turnstile-container" class="hidden"></div>
+          <div id="turnstile-container" class="hidden" data-sitekey="0x4AAAAAACd3toYLr-zpefgU"></div>
 
           <button
             type="submit"
@@ -190,6 +193,16 @@
 </style>
 
 <script>
+  declare global {
+    interface Window {
+      turnstile: {
+        render: (container: string | HTMLElement, options: any) => string;
+        reset: (container?: string | HTMLElement) => void;
+        remove: (widgetId: string) => void;
+      };
+    }
+  }
+
   const form = document.querySelector<HTMLFormElement>("#contact form");
   const container = document.getElementById("turnstile-container");
   const card = document.getElementById("contact-card");
@@ -197,6 +210,29 @@
   const successView = document.getElementById("contact-success-view");
   const sendAnother = document.getElementById("contact-send-another");
   let turnstileReady = false;
+
+  const sitekey = container?.dataset.sitekey ?? "";
+
+  function getTurnstileTheme(): "dark" | "light" {
+    return document.documentElement.classList.contains("dark") ? "dark" : "light";
+  }
+
+  function renderTurnstile() {
+    if (!container || !window.turnstile) return;
+    window.turnstile.render(container, {
+      sitekey,
+      theme: getTurnstileTheme(),
+      callback: () => submitForm(),
+    });
+  }
+
+  // Re-render Turnstile when user switches theme (if widget is currently shown)
+  window.addEventListener("theme-change", () => {
+    if (!turnstileReady || !container || container.classList.contains("hidden")) return;
+    // Clear the DOM completely before re-rendering — reset() alone leaves the old widget in place
+    container.innerHTML = "";
+    renderTurnstile();
+  });
 
   // Typing detection — activate glow, stays until submit
   form?.addEventListener("input", () => {
@@ -235,7 +271,7 @@
         if (window.turnstile) window.turnstile.reset();
         turnstileReady = false;
       } else {
-        const data = await res.json().catch(() => ({}));
+        const data = await res.json().catch(() => ({})) as { error?: string };
         showError(data.error || "Something went wrong. Please try again.");
       }
     } catch {
@@ -279,11 +315,7 @@
     if (container && !turnstileReady) {
       container.classList.remove("hidden");
       turnstileReady = true;
-      window.turnstile.render(container, {
-        sitekey: "0x4AAAAAACd3toYLr-zpefgU",
-        theme: "auto",
-        callback: () => submitForm(),
-      });
+      renderTurnstile();
     }
   });
 </script>
