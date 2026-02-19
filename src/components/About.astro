@@ -91,14 +91,14 @@ const education = [
   <div class="mx-auto max-w-5xl px-6">
     <div class="fade-in flex flex-col items-center gap-12 md:flex-row md:items-start">
       <!-- Photo -->
-      <div class="avatar-wrap flex-shrink-0">
+      <div class="avatar-wrap shrink-0">
         <img
           src="/avatar.png"
           alt="Daniel Guntermann"
           width="240"
           height="240"
           loading="lazy"
-          class="avatar-img h-[240px] w-[240px] rounded-full object-cover"
+          class="avatar-img h-60 w-60 rounded-full object-cover"
         />
       </div>
 
@@ -178,7 +178,7 @@ const education = [
       {experiences.map((exp, i) => (
         <div class="timeline-entry fade-in-left relative mb-10 pl-8 last:mb-0" style={`transition-delay: ${i * 150}ms`}>
           <!-- Timeline dot -->
-          <div class="timeline-dot absolute -left-[7px] top-1.5 h-3.5 w-3.5 rounded-full border-2 border-emerald-600 bg-[#f7f7f5] dark:bg-[#0a0a0a]" />
+          <div class="timeline-dot absolute -left-2 top-1.5 h-3.5 w-3.5 rounded-full border-2 border-emerald-600 bg-[#f7f7f5] dark:bg-[#0a0a0a]" />
 
           <div class="section-card p-5">
             <div class="mb-2 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
@@ -193,7 +193,7 @@ const education = [
             <ul class="space-y-1 text-sm text-gray-500 dark:text-gray-400">
               {exp.highlights.map((h) => (
                 <li class="flex gap-2">
-                  <span class="mt-1.5 h-1 w-1 flex-shrink-0 rounded-full bg-gray-300 dark:bg-gray-600" />
+                  <span class="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-gray-300 dark:bg-gray-600" />
                   {h}
                 </li>
               ))}
@@ -214,7 +214,7 @@ const education = [
       {education.map((edu, i) => (
         <div class="timeline-entry fade-in-left relative mb-10 pl-8 last:mb-0" style={`transition-delay: ${i * 150}ms`}>
           <!-- Timeline dot -->
-          <div class="timeline-dot absolute -left-[7px] top-1.5 h-3.5 w-3.5 rounded-full border-2 border-emerald-600 bg-[#f7f7f5] dark:bg-[#0a0a0a]" />
+          <div class="timeline-dot absolute -left-2 top-1.5 h-3.5 w-3.5 rounded-full border-2 border-emerald-600 bg-[#f7f7f5] dark:bg-[#0a0a0a]" />
 
           <div class="section-card p-5">
             <div class="mb-2 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
@@ -222,12 +222,12 @@ const education = [
                 {edu.title}
                 <span class="font-sans font-normal text-gray-500 dark:text-gray-400"> &ndash; {edu.institution}</span>
               </h3>
-              <span class="flex-shrink-0 text-sm text-gray-400 dark:text-gray-500">{edu.period}</span>
+              <span class="shrink-0 text-sm text-gray-400 dark:text-gray-500">{edu.period}</span>
             </div>
             <ul class="space-y-1 text-sm text-gray-500 dark:text-gray-400">
               {edu.highlights.map((h) => (
                 <li class="flex gap-2">
-                  <span class="mt-1.5 h-1 w-1 flex-shrink-0 rounded-full bg-gray-300 dark:bg-gray-600" />
+                  <span class="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-gray-300 dark:bg-gray-600" />
                   {h}
                 </li>
               ))}

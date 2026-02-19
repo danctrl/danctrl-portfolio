@@ -13,7 +13,7 @@
 
 <style>
   #astronaut {
-    will-change: left, top;
+    will-change: transform;
   }
 
   .astronaut-glow {
@@ -28,7 +28,7 @@
     pointer-events: none;
     z-index: -1;
     will-change: opacity, transform;
-    transition: opacity 0.3s ease, transform 0.3s ease;
+    transition: opacity 0.5s ease, transform 0.5s ease;
   }
 
   /* Glow pulses in sync with idle float */
@@ -58,7 +58,7 @@
     position: relative;
     filter: drop-shadow(0 0 10px rgba(5, 150, 105, 0.25));
     will-change: transform;
-    transition: filter 0.3s ease;
+    transition: filter 0.5s ease;
   }
 
   /* Idle floating animation (scroll mode) */
@@ -102,22 +102,22 @@
     const SCROLL_THRESHOLD = 100;
     const MIN_MARGIN = 160;      // minimum left margin (px) needed to show
 
-    // Scroll-mode lerp
-    const LERP_Y = 0.06;
-    const LERP_X = 0.08;
-    const LERP_ROT = 0.06;
-    const MAX_TILT = 15;
-    const DRIFT_AMOUNT = 20;
+    // Scroll-mode lerp (time-based smoothing factors, per second)
+    const SMOOTH_POS = 4.5;    // position smoothing speed
+    const SMOOTH_ROT = 3.5;    // rotation smoothing speed
+    const SMOOTH_SCALE = 4.0;  // scale smoothing speed
+    const MAX_TILT = 12;
+    const DRIFT_AMOUNT = 18;
 
     // Hero orbit
-    const HERO_CYCLE = 16000;
-    const HERO_MAX_TILT = 10;
+    const HERO_CYCLE = 24000;  // slower, more relaxed orbit
+    const HERO_MAX_TILT = 8;
     const ORBIT_PADDING = 60;
+    const HERO_SMOOTH = 3.0;  // how fast hero position catches up to orbit target
 
     // Mouse follow / hover
     const HOVER_RADIUS = 180;
-    const MOUSE_LERP = 0.04;
-    const SCALE_LERP = 0.06;
+    const MOUSE_ATTRACT = 0.04;  // how strongly mouse pulls astronaut
     const HOVER_SCALE = 1.2;
 
     // ── Dynamic sizing based on available margin ──
@@ -183,7 +183,8 @@
     let scrollXOffset = 0;
     let targetXOffset = 0;
     let lastScrollY = window.scrollY;
-    let scrollVelocity = 0;
+    let scrollVelocity = 0;       // raw per-frame delta
+    let smoothScrollVel = 0;      // exponentially smoothed velocity for visuals
     let idleTimer: ReturnType<typeof setTimeout> | null = null;
     let isIdle = false;
 
@@ -193,8 +194,14 @@
     let isHovered = false;
     let currentScale = 1;
 
+    // Card hover attraction
+    let cardTarget: { x: number; y: number } | null = null;
+
     // Hero orbit state
     let heroStartTime = performance.now();
+    let heroOrbitTime = 0; // virtual time that advances slower when hovered
+    let lastTickTime = performance.now();
+    const HOVER_SPEED = 0.2; // 20% of normal speed when hovered
 
     // Transition state
     let transStartTime = 0;
@@ -219,8 +226,11 @@
       );
     }
 
-    // ── Compute waypoints around the hero content ──
-    function getOrbitWaypoints(): { x: number; y: number }[] {
+    // ── Compute and cache waypoints around the hero content ──
+    let cachedWaypoints: { x: number; y: number }[] = [];
+    let waypointsDirty = true;
+
+    function computeWaypoints(): { x: number; y: number }[] {
       const vw = window.innerWidth;
       const vh = window.innerHeight;
       const nav = document.querySelector("nav");
@@ -230,7 +240,6 @@
       const navBottom = nav ? nav.getBoundingClientRect().bottom + 15 : 80;
 
       if (!contentDiv) {
-        // Fallback: simple rectangle orbit in empty space
         return [
           { x: vw * 0.7, y: navBottom + 20 },
           { x: vw - SIZE - 20, y: vh * 0.35 },
@@ -245,45 +254,104 @@
       const pad = ORBIT_PADDING;
       const half = SIZE / 2;
 
-      // Safe bounds: stay within viewport and outside content
       const safeLeft = Math.max(10, cr.left - SIZE - pad * 0.3);
       const safeRight = Math.min(cr.right + pad, vw - SIZE - 10);
       const safeTop = Math.max(navBottom + 10, cr.top - SIZE - pad);
       const safeBottom = Math.min(cr.bottom + pad, vh - SIZE - 10);
 
-      // Waypoints trace a path around the content block (clockwise)
       return [
-        // 0: Top-center — above the content
         { x: Math.min(cr.left + cr.width * 0.4 - half, safeRight), y: safeTop },
-        // 1: Top-right — above content, right side
         { x: safeRight, y: safeTop + 20 },
-        // 2: Mid-right — to the right of content, upper
         { x: safeRight, y: cr.top + cr.height * 0.25 },
-        // 3: Mid-right lower — to the right of content, lower
         { x: safeRight, y: cr.top + cr.height * 0.7 },
-        // 4: Bottom-right — below content, right
         { x: Math.min(cr.left + cr.width * 0.7, safeRight), y: safeBottom },
-        // 5: Bottom-center — below content
         { x: Math.max(cr.left + cr.width * 0.2 - half, safeLeft), y: safeBottom },
-        // 6: Bottom-left — below content, left
         { x: safeLeft, y: safeBottom - 20 },
-        // 7: Left side — left of content
         { x: safeLeft, y: cr.top + cr.height * 0.4 },
       ];
     }
 
-    // ── Get hero orbit position from time ──
-    function getHeroPos(time: number): { x: number; y: number; rot: number } {
+    function getOrbitWaypoints(): { x: number; y: number }[] {
+      if (waypointsDirty) {
+        cachedWaypoints = computeWaypoints();
+        waypointsDirty = false;
+      }
+      return cachedWaypoints;
+    }
+
+    // Invalidate on resize (not every frame)
+    window.addEventListener("resize", () => { waypointsDirty = true; arcTableDirty = true; });
+
+    // ── Arc-length table for uniform-speed orbit ──
+    // Maps normalized distance [0..1] → { segment, t } so the astronaut
+    // travels at constant visual speed regardless of waypoint spacing.
+    let arcTable: { totalLen: number; cumLengths: number[] }  = { totalLen: 0, cumLengths: [] };
+    let arcTableDirty = true;
+
+    function rebuildArcTable() {
+      const wp = getOrbitWaypoints();
+      const n = wp.length;
+      const SAMPLES_PER_SEG = 16;
+      const cumLengths: number[] = [0];
+      let total = 0;
+
+      for (let seg = 0; seg < n; seg++) {
+        const p0 = wp[(seg - 1 + n) % n];
+        const p1 = wp[seg];
+        const p2 = wp[(seg + 1) % n];
+        const p3 = wp[(seg + 2) % n];
+        let prevX = catmullRom(p0.x, p1.x, p2.x, p3.x, 0);
+        let prevY = catmullRom(p0.y, p1.y, p2.y, p3.y, 0);
+
+        for (let i = 1; i <= SAMPLES_PER_SEG; i++) {
+          const st = i / SAMPLES_PER_SEG;
+          const cx = catmullRom(p0.x, p1.x, p2.x, p3.x, st);
+          const cy = catmullRom(p0.y, p1.y, p2.y, p3.y, st);
+          total += Math.sqrt((cx - prevX) ** 2 + (cy - prevY) ** 2);
+          prevX = cx;
+          prevY = cy;
+        }
+        cumLengths.push(total);
+      }
+
+      arcTable = { totalLen: total, cumLengths };
+      arcTableDirty = false;
+    }
+
+    // Convert normalized distance [0..1] → segment + local t
+    function arcToParam(d: number): { segment: number; t: number } {
+      if (arcTableDirty) rebuildArcTable();
+      const wp = getOrbitWaypoints();
+      const n = wp.length;
+      const targetLen = d * arcTable.totalLen;
+
+      // Find which segment this distance falls in
+      let seg = 0;
+      for (let i = 1; i <= n; i++) {
+        if (arcTable.cumLengths[i] >= targetLen) {
+          seg = i - 1;
+          break;
+        }
+        if (i === n) seg = n - 1;
+      }
+
+      const segStart = arcTable.cumLengths[seg];
+      const segEnd = arcTable.cumLengths[seg + 1];
+      const segLen = segEnd - segStart;
+      const t = segLen > 0 ? (targetLen - segStart) / segLen : 0;
+
+      return { segment: seg, t };
+    }
+
+    // ── Get hero orbit position from virtual orbit time ──
+    function getHeroPos(_time: number): { x: number; y: number; rot: number } {
       const waypoints = getOrbitWaypoints();
       const n = waypoints.length;
 
-      // Progress through the orbit (0..1 maps to full loop)
-      const progress = ((time - heroStartTime) % HERO_CYCLE) / HERO_CYCLE;
-      const totalT = progress * n;
-      const segment = Math.floor(totalT) % n;
-      const t = totalT - Math.floor(totalT); // 0..1 within segment
+      // Uniform-speed progress via arc-length parameterization
+      const progress = ((heroOrbitTime % HERO_CYCLE) + HERO_CYCLE) % HERO_CYCLE / HERO_CYCLE;
+      const { segment, t } = arcToParam(progress);
 
-      // Get 4 control points for Catmull-Rom (wrapping around)
       const p0 = waypoints[(segment - 1 + n) % n];
       const p1 = waypoints[segment];
       const p2 = waypoints[(segment + 1) % n];
@@ -292,39 +360,40 @@
       const x = catmullRom(p0.x, p1.x, p2.x, p3.x, t);
       const y = catmullRom(p0.y, p1.y, p2.y, p3.y, t);
 
-      // Tilt based on movement direction
-      const dt = 0.01;
-      const tNext = t + dt;
-      const xNext = catmullRom(p0.x, p1.x, p2.x, p3.x, Math.min(tNext, 1));
-      const yNext = catmullRom(p0.y, p1.y, p2.y, p3.y, Math.min(tNext, 1));
-      const dx = xNext - x;
-      const dy = yNext - y;
+      // Smooth tangent via central difference
+      const epsilon = 0.005;
+      const tNext = Math.min(t + epsilon, 0.999);
+      const tPrev = Math.max(t - epsilon, 0.001);
+      const dx = catmullRom(p0.x, p1.x, p2.x, p3.x, tNext) - catmullRom(p0.x, p1.x, p2.x, p3.x, tPrev);
+      const dy = catmullRom(p0.y, p1.y, p2.y, p3.y, tNext) - catmullRom(p0.y, p1.y, p2.y, p3.y, tPrev);
       const angle = Math.atan2(dy, dx) * (180 / Math.PI);
-      const tilt = Math.max(-HERO_MAX_TILT, Math.min(HERO_MAX_TILT, angle * 0.15));
+      const tilt = Math.max(-HERO_MAX_TILT, Math.min(HERO_MAX_TILT, angle * 0.1));
 
       return { x, y, rot: tilt };
     }
 
-    // ── Find nearest orbit time to a given position ──
-    function findNearestOrbitTime(px: number, py: number): number {
-      // Sample the orbit at many points and find the closest one
+    // ── Find nearest orbit phase to a given position ──
+    // Returns the heroOrbitTime value that produces the closest orbit position
+    function findNearestOrbitPhase(px: number, py: number): number {
       const samples = 64;
       let bestDist = Infinity;
-      let bestTime = 0;
+      let bestPhase = 0;
+      const savedOrbitTime = heroOrbitTime;
 
       for (let i = 0; i < samples; i++) {
-        const sampleTime = heroStartTime + (i / samples) * HERO_CYCLE;
-        const pos = getHeroPos(sampleTime);
+        heroOrbitTime = (i / samples) * HERO_CYCLE;
+        const pos = getHeroPos(0); // _time param is ignored, uses heroOrbitTime
         const dx = pos.x - px;
         const dy = pos.y - py;
         const dist = dx * dx + dy * dy;
         if (dist < bestDist) {
           bestDist = dist;
-          bestTime = sampleTime;
+          bestPhase = heroOrbitTime;
         }
       }
 
-      return bestTime;
+      heroOrbitTime = savedOrbitTime;
+      return bestPhase;
     }
 
     // ── Scroll mode helpers ──
@@ -391,26 +460,31 @@
       transStartX = currentX;
       transStartY = currentY;
       transStartRot = currentRot;
-      transDuration = 1200; // long blend for ultra-smooth transition
+      transDuration = 1200;
 
-      // Set heroStartTime and find the nearest orbit point
-      // so the orbit is already "running" during the blend
-      heroStartTime = performance.now();
-      const nearestTime = findNearestOrbitTime(currentX, currentY);
-      // Offset heroStartTime so the orbit starts at the nearest point
-      heroStartTime = performance.now() - (nearestTime - heroStartTime);
+      // Recalculate waypoints since hero content may have shifted
+      waypointsDirty = true;
+      arcTableDirty = true;
+
+      // Set heroOrbitTime to nearest orbit phase so the blend target is close
+      heroOrbitTime = findNearestOrbitPhase(currentX, currentY);
 
       astronaut.classList.remove("idle", "scrolling");
       isIdle = false;
     }
 
-    // ── Apply position ──
+    // ── Time-based exponential smoothing ──
+    // Returns a lerp factor for a given speed and delta time (frame-rate independent)
+    function damp(smoothing: number, deltaS: number): number {
+      return 1 - Math.exp(-smoothing * deltaS);
+    }
+
+    // ── Apply position (GPU-accelerated via translate3d) ──
     function applyPosition(x: number, y: number, rot: number) {
       currentX = x;
       currentY = y;
       currentRot = rot;
-      astronaut.style.left = x + "px";
-      astronaut.style.top = y + "px";
+      astronaut.style.transform = `translate3d(${x.toFixed(1)}px, ${y.toFixed(1)}px, 0)`;
       img.style.transform = `rotate(${rot.toFixed(1)}deg) scale(${currentScale.toFixed(3)})`;
     }
 
@@ -438,8 +512,8 @@
       }
 
       if (isHovered) {
-        const attractX = finalX + (mouseX - centerX) * MOUSE_LERP;
-        const attractY = finalY + (mouseY - centerY) * MOUSE_LERP;
+        const attractX = finalX + (mouseX - centerX) * MOUSE_ATTRACT;
+        const attractY = finalY + (mouseY - centerY) * MOUSE_ATTRACT;
         return { x: attractX, y: attractY };
       }
 
@@ -453,9 +527,15 @@
         return;
       }
 
+      // Time delta in seconds (capped to avoid jumps after tab switch)
+      const dt = Math.min((now - lastTickTime) / 1000, 0.1);
+      lastTickTime = now;
+
       const newScrollY = window.scrollY;
       const scrollDelta = newScrollY - lastScrollY;
       scrollVelocity = scrollDelta;
+      // Exponentially smooth scroll velocity for visuals (rotation, scale)
+      smoothScrollVel += (scrollVelocity - smoothScrollVel) * damp(8, dt);
       lastScrollY = newScrollY;
 
       // Mode switching
@@ -465,15 +545,29 @@
         startGlideToHero();
       }
 
-      // Lerp scale
-      const targetScale = isHovered ? HOVER_SCALE : 1;
-      currentScale += (targetScale - currentScale) * SCALE_LERP;
+      // Smooth scale (hover > fast scroll > normal)
+      const SCROLL_SCALE = 1.15;
+      const SCROLL_SCALE_THRESHOLD = 15;
+      const absSmooth = Math.abs(smoothScrollVel);
+      const targetScale = isHovered ? HOVER_SCALE : absSmooth > SCROLL_SCALE_THRESHOLD ? SCROLL_SCALE : 1;
+      currentScale += (targetScale - currentScale) * damp(SMOOTH_SCALE, dt);
+
+      // Advance virtual orbit time (slows down when hovered)
+      if (mode === "hero" || mode === "glide-to-hero") {
+        const speed = isHovered ? HOVER_SPEED : 1;
+        heroOrbitTime += dt * 1000 * speed;
+      }
 
       switch (mode) {
         case "hero": {
           const pos = getHeroPos(now);
-          const m = updateMouseHover(pos.x, pos.y);
-          applyPosition(m.x, m.y, pos.rot);
+          // Smooth toward orbit target (absorbs any waypoint shifts)
+          const hf = damp(HERO_SMOOTH, dt);
+          let hx = currentX + (pos.x - currentX) * hf;
+          let hy = currentY + (pos.y - currentY) * hf;
+          const hr = currentRot + (pos.rot - currentRot) * hf;
+          const m = updateMouseHover(hx, hy);
+          applyPosition(m.x, m.y, hr);
           break;
         }
 
@@ -488,9 +582,8 @@
           const x = transStartX + (targetX - transStartX) * ease;
           const y = transStartY + (targetY - transStartY) * ease;
 
-          // Smooth rotation: kick to 15deg then ease back to 0
-          const rotPeak = 15;
-          const rotKick = rotPeak * Math.sin(progress * Math.PI);
+          // Smooth sine rotation kick during dash
+          const rotKick = 12 * Math.sin(progress * Math.PI);
 
           applyPosition(x, y, rotKick);
 
@@ -505,20 +598,19 @@
           const elapsed = now - transStartTime;
           const progress = Math.min(elapsed / transDuration, 1);
 
-          // Smooth ease-in-out blend factor (0 = scroll position, 1 = orbit position)
-          const blend = progress * progress * (3 - 2 * progress); // smoothstep
+          // Quintic ease-in-out for ultra-smooth blend
+          const blend = progress < 0.5
+            ? 16 * progress * progress * progress * progress * progress
+            : 1 - Math.pow(-2 * progress + 2, 5) / 2;
 
-          // The orbit is already running — get its current live position
           const orbitPos = getHeroPos(now);
 
-          // Blend from frozen start position toward the live orbit
           const x = transStartX + (orbitPos.x - transStartX) * blend;
           const y = transStartY + (orbitPos.y - transStartY) * blend;
           const rot = transStartRot + (orbitPos.rot - transStartRot) * blend;
 
           applyPosition(x, y, rot);
 
-          // At 100% blend, we're already perfectly on the orbit — seamless handoff
           if (progress >= 1) {
             mode = "hero";
           }
@@ -533,30 +625,53 @@
           scrollTargetY = getScrollTargetY();
           scrollBaseX = getScrollBaseX();
 
-          targetXOffset = -Math.min(Math.abs(scrollVelocity) * 0.8, DRIFT_AMOUNT) * Math.sign(scrollVelocity || 1);
-          scrollXOffset += (targetXOffset - scrollXOffset) * LERP_X;
+          // Smooth drift offset based on smoothed velocity
+          targetXOffset = -Math.min(Math.abs(smoothScrollVel) * 0.7, DRIFT_AMOUNT) * Math.sign(smoothScrollVel || 1);
+          scrollXOffset += (targetXOffset - scrollXOffset) * damp(6, dt);
 
-          const targetX = scrollBaseX + scrollXOffset;
-          const targetY = scrollTargetY;
+          let targetX: number;
+          let targetY: number;
+          let posSpeed: number;
 
-          let x = currentX + (targetX - currentX) * LERP_X;
-          let y = currentY + (targetY - currentY) * LERP_Y;
+          if (cardTarget) {
+            targetX = cardTarget.x;
+            targetY = cardTarget.y;
+            posSpeed = SMOOTH_POS * 0.7; // slightly slower for graceful card approach
+            exitIdle();
+          } else {
+            targetX = scrollBaseX + scrollXOffset;
+            targetY = scrollTargetY;
+            posSpeed = SMOOTH_POS;
+          }
 
-          const targetRot = Math.max(-MAX_TILT, Math.min(MAX_TILT, scrollVelocity * 1.5));
-          const rot = currentRot + (targetRot - currentRot) * LERP_ROT;
+          const posFactor = damp(posSpeed, dt);
+          let x = currentX + (targetX - currentX) * posFactor;
+          let y = currentY + (targetY - currentY) * posFactor;
+
+          // Tilt: use smoothed velocity for natural, non-jerky rotation
+          let targetRot: number;
+          if (cardTarget) {
+            const dx = targetX - currentX;
+            const dy = targetY - currentY;
+            const travelAngle = Math.atan2(dy, dx) * (180 / Math.PI);
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            targetRot = dist > 5 ? Math.max(-MAX_TILT, Math.min(MAX_TILT, travelAngle * 0.12)) : 0;
+          } else {
+            targetRot = Math.max(-MAX_TILT, Math.min(MAX_TILT, smoothScrollVel * 1.2));
+          }
+          const rot = currentRot + (targetRot - currentRot) * damp(SMOOTH_ROT, dt);
 
           const m = updateMouseHover(x, y);
           x = m.x;
           y = m.y;
 
-          if (!isIdle || isHovered) {
+          if (!isIdle || isHovered || cardTarget) {
             applyPosition(x, y, rot);
           } else {
             currentX = x;
             currentY = y;
             currentRot = rot;
-            astronaut.style.left = x + "px";
-            astronaut.style.top = y + "px";
+            astronaut.style.transform = `translate3d(${x.toFixed(1)}px, ${y.toFixed(1)}px, 0)`;
           }
 
           if (Math.abs(scrollVelocity) > 0.5) {
@@ -564,9 +679,17 @@
             astronaut.classList.add("scrolling");
             if (idleTimer) clearTimeout(idleTimer);
             idleTimer = setTimeout(() => {
-              enterIdle();
+              if (!cardTarget) enterIdle();
               astronaut.classList.remove("scrolling");
             }, 800);
+          }
+
+          // Re-enter idle when returning from card and close to scroll position
+          if (!cardTarget && !isIdle && Math.abs(scrollVelocity) < 0.5) {
+            const distToHome = Math.abs(currentX - scrollBaseX) + Math.abs(currentY - scrollTargetY);
+            if (distToHome < 10) {
+              enterIdle();
+            }
           }
           break;
         }
@@ -578,40 +701,55 @@
       requestAnimationFrame(tick);
     }
 
-    // ── Timeline dots: light up when astronaut is at same level ──
-    const timelineDots = document.querySelectorAll<HTMLElement>(".timeline-dot");
-    const DOT_PROXIMITY = 80; // px vertical distance to trigger glow
-    let activeDots: Set<HTMLElement> = new Set();
+    // ── Timeline dots: only one active at a time, card hover takes priority ──
+    const timelineEntries = document.querySelectorAll<HTMLElement>(".timeline-entry");
+    const SECTION_EARLY = 20; // activate 20px before entering section
+    let activeDot: HTMLElement | null = null;
+    let cardHoveredDot: HTMLElement | null = null;
 
     function updateTimelineDots() {
       if (!isVisible || mode === "hero") {
-        // Clear all when not in scroll mode
-        if (activeDots.size > 0) {
-          activeDots.forEach((dot) => dot.classList.remove("astronaut-near"));
-          activeDots.clear();
+        if (activeDot) {
+          activeDot.classList.remove("astronaut-near");
+          activeDot = null;
         }
         return;
       }
 
-      const astroCenterY = currentY + SIZE / 2;
+      // Card hover takes priority
+      let bestDot: HTMLElement | null = cardHoveredDot;
 
-      timelineDots.forEach((dot) => {
-        const rect = dot.getBoundingClientRect();
-        const dotCenterY = rect.top + rect.height / 2;
-        const dist = Math.abs(astroCenterY - dotCenterY);
+      // If no card is hovered, find the entry whose section the astronaut is nearest to
+      if (!bestDot) {
+        const astroCenterY = currentY + SIZE / 2;
+        let bestDist = Infinity;
 
-        if (dist < DOT_PROXIMITY) {
-          if (!activeDots.has(dot)) {
-            dot.classList.add("astronaut-near");
-            activeDots.add(dot);
+        timelineEntries.forEach((entry) => {
+          const rect = entry.getBoundingClientRect();
+          const top = rect.top - SECTION_EARLY;
+          const bottom = rect.bottom + SECTION_EARLY;
+
+          // Distance: 0 if inside, otherwise distance to nearest edge
+          let dist: number;
+          if (astroCenterY >= top && astroCenterY <= bottom) {
+            dist = 0;
+          } else {
+            dist = Math.min(Math.abs(astroCenterY - top), Math.abs(astroCenterY - bottom));
           }
-        } else {
-          if (activeDots.has(dot)) {
-            dot.classList.remove("astronaut-near");
-            activeDots.delete(dot);
+
+          if (dist < bestDist && dist === 0) {
+            bestDist = dist;
+            bestDot = entry.querySelector<HTMLElement>(".timeline-dot");
           }
-        }
-      });
+        });
+      }
+
+      // Switch active dot (only one at a time)
+      if (bestDot !== activeDot) {
+        if (activeDot) activeDot.classList.remove("astronaut-near");
+        if (bestDot) bestDot.classList.add("astronaut-near");
+        activeDot = bestDot;
+      }
     }
 
     // ── Initialize ──
@@ -619,6 +757,7 @@
 
     if (isVisible) {
       if (mode === "hero") {
+        heroOrbitTime = Math.random() * HERO_CYCLE; // randomize start position
         const pos = getHeroPos(performance.now());
         applyPosition(pos.x, pos.y, pos.rot);
       } else {
@@ -652,6 +791,50 @@
     document.addEventListener("mouseleave", () => {
       mouseX = -9999;
       mouseY = -9999;
+    });
+
+    // ── Card/section hover: astronaut flies to hovered element ──
+    function setCardTarget(el: HTMLElement) {
+      if (mode !== "scroll" && mode !== "dash-to-scroll") return;
+      const rect = el.getBoundingClientRect();
+      cardTarget = {
+        x: Math.max(10, rect.left - SIZE - 20),
+        y: rect.top + rect.height / 2 - SIZE / 2,
+      };
+      if (cardTarget.x < 10) {
+        cardTarget.x = rect.left + 20;
+        cardTarget.y = Math.max(10, rect.top - SIZE - 15);
+      }
+    }
+
+    // Section cards (experience, education, projects)
+    document.querySelectorAll<HTMLElement>(".section-card:not(.section-card--static)").forEach((card) => {
+      card.addEventListener("mouseenter", () => {
+        setCardTarget(card);
+        const entry = card.closest(".timeline-entry");
+        cardHoveredDot = entry?.querySelector<HTMLElement>(".timeline-dot") || null;
+      });
+
+      card.addEventListener("mouseleave", () => {
+        cardTarget = null;
+        cardHoveredDot = null;
+      });
+    });
+
+    // Skills and Contact sections
+    ["skills", "contact"].forEach((id) => {
+      const section = document.getElementById(id);
+      if (section) {
+        section.addEventListener("mouseenter", () => {
+          setCardTarget(section);
+          // Contact: position higher (top third instead of center)
+          if (id === "contact" && cardTarget) {
+            const rect = section.getBoundingClientRect();
+            cardTarget.y = rect.top + rect.height * 0.2 - SIZE / 2;
+          }
+        });
+        section.addEventListener("mouseleave", () => { cardTarget = null; });
+      }
     });
   }
 </script>

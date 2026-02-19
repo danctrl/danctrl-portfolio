@@ -271,7 +271,7 @@ html.theme-transition *::after {
 
 /* Timeline dot hover glow */
 .timeline-entry .timeline-dot {
-  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+  transition: background-color 0.12s ease-out, box-shadow 0.12s ease-out;
 }
 
 .timeline-entry:has(.section-card:hover) .timeline-dot,
