@@ -61,31 +61,9 @@
     transition: filter 0.5s ease;
   }
 
-  /* Idle floating animation (scroll mode) */
-  @keyframes astronaut-float {
-    0%, 100% { transform: translateY(-8px) rotate(-3deg); }
-    50% { transform: translateY(8px) rotate(3deg); }
-  }
-
-  #astronaut.idle .astronaut-img {
-    animation: astronaut-float 3s ease-in-out infinite;
-  }
-
   /* Hover: intensified glow on img */
   #astronaut.hovered .astronaut-img {
     filter: drop-shadow(0 0 30px rgba(5, 150, 105, 0.35));
-  }
-
-  /* Dash scale boost */
-  #astronaut.dashing .astronaut-img {
-    transform: scale(1.2);
-    transition: transform 200ms ease-out;
-  }
-
-  /* Nav-click boost */
-  #astronaut.boost .astronaut-img {
-    transform: scale(1.1);
-    transition: transform 200ms ease-out;
   }
 </style>
 
@@ -105,7 +83,7 @@
     // Scroll-mode lerp (time-based smoothing factors, per second)
     const SMOOTH_POS = 4.5;    // position smoothing speed
     const SMOOTH_ROT = 3.5;    // rotation smoothing speed
-    const SMOOTH_SCALE = 4.0;  // scale smoothing speed
+    const SMOOTH_SCALE = 8.0;  // scale smoothing speed (snappy but smooth)
     const MAX_TILT = 12;
     const DRIFT_AMOUNT = 18;
 
@@ -116,8 +94,8 @@
     const HERO_SMOOTH = 3.0;  // how fast hero position catches up to orbit target
 
     // Mouse follow / hover
-    const HOVER_RADIUS = 180;
-    const MOUSE_ATTRACT = 0.04;  // how strongly mouse pulls astronaut
+    const HOVER_RADIUS = 140;   // triggers when cursor is clearly near
+    const MOUSE_ATTRACT = 0.04;
     const HOVER_SCALE = 1.2;
 
     // ── Dynamic sizing based on available margin ──
@@ -187,6 +165,10 @@
     let smoothScrollVel = 0;      // exponentially smoothed velocity for visuals
     let idleTimer: ReturnType<typeof setTimeout> | null = null;
     let isIdle = false;
+    let idleTime = 0;           // accumulated idle time for float animation
+    const IDLE_FLOAT_AMP = 8;   // pixels of vertical bob
+    const IDLE_FLOAT_ROT = 3;   // degrees of idle tilt
+    const IDLE_FLOAT_SPEED = 2.1; // cycles per second (matches old 3s period)
 
     // Mouse state
     let mouseX = -9999;
@@ -415,15 +397,12 @@
     function enterIdle() {
       if (!isIdle) {
         isIdle = true;
-        astronaut.classList.add("idle");
       }
     }
 
     function exitIdle() {
       if (isIdle) {
         isIdle = false;
-        astronaut.classList.remove("idle");
-        img.style.transform = "";
       }
     }
 
@@ -480,12 +459,16 @@
     }
 
     // ── Apply position (GPU-accelerated via translate3d) ──
+    // Idle float is computed in JS so it never fights the scale transform.
+    let idleFloatY = 0;
+    let idleFloatRot = 0;
+
     function applyPosition(x: number, y: number, rot: number) {
       currentX = x;
       currentY = y;
       currentRot = rot;
-      astronaut.style.transform = `translate3d(${x.toFixed(1)}px, ${y.toFixed(1)}px, 0)`;
-      img.style.transform = `rotate(${rot.toFixed(1)}deg) scale(${currentScale.toFixed(3)})`;
+      astronaut.style.transform = `translate3d(${x.toFixed(1)}px, ${(y + idleFloatY).toFixed(1)}px, 0)`;
+      img.style.transform = `rotate(${(rot + idleFloatRot).toFixed(1)}deg) scale(${currentScale.toFixed(3)})`;
     }
 
     // ── Mouse proximity check ──
@@ -545,12 +528,30 @@
         startGlideToHero();
       }
 
-      // Smooth scale (hover > fast scroll > normal)
+      // Smooth scale (hover > glide transition > fast scroll > normal)
       const SCROLL_SCALE = 1.15;
       const SCROLL_SCALE_THRESHOLD = 15;
       const absSmooth = Math.abs(smoothScrollVel);
-      const targetScale = isHovered ? HOVER_SCALE : absSmooth > SCROLL_SCALE_THRESHOLD ? SCROLL_SCALE : 1;
+      const isGliding = mode === "glide-to-hero" || mode === "dash-to-scroll";
+      const targetScale = isHovered ? HOVER_SCALE
+        : isGliding ? SCROLL_SCALE
+        : absSmooth > SCROLL_SCALE_THRESHOLD ? SCROLL_SCALE
+        : 1;
       currentScale += (targetScale - currentScale) * damp(SMOOTH_SCALE, dt);
+
+      // Idle float (JS-driven so it never fights the scale transform)
+      if (isIdle) {
+        idleTime += dt;
+        const phase = idleTime * IDLE_FLOAT_SPEED * Math.PI * 2;
+        const targetFloatY = Math.sin(phase) * IDLE_FLOAT_AMP;
+        const targetFloatRot = Math.sin(phase) * IDLE_FLOAT_ROT;
+        idleFloatY += (targetFloatY - idleFloatY) * damp(6, dt);
+        idleFloatRot += (targetFloatRot - idleFloatRot) * damp(6, dt);
+      } else {
+        // Smoothly ease float offset back to zero
+        idleFloatY += (0 - idleFloatY) * damp(6, dt);
+        idleFloatRot += (0 - idleFloatRot) * damp(6, dt);
+      }
 
       // Advance virtual orbit time (slows down when hovered)
       if (mode === "hero" || mode === "glide-to-hero") {
@@ -579,13 +580,14 @@
           const targetX = getScrollBaseX();
           const targetY = getScrollTargetY();
 
-          const x = transStartX + (targetX - transStartX) * ease;
-          const y = transStartY + (targetY - transStartY) * ease;
+          let x = transStartX + (targetX - transStartX) * ease;
+          let y = transStartY + (targetY - transStartY) * ease;
 
           // Smooth sine rotation kick during dash
           const rotKick = 12 * Math.sin(progress * Math.PI);
 
-          applyPosition(x, y, rotKick);
+          const m = updateMouseHover(x, y);
+          applyPosition(m.x, m.y, rotKick);
 
           if (progress >= 1) {
             mode = "scroll";
@@ -605,11 +607,12 @@
 
           const orbitPos = getHeroPos(now);
 
-          const x = transStartX + (orbitPos.x - transStartX) * blend;
-          const y = transStartY + (orbitPos.y - transStartY) * blend;
+          let x = transStartX + (orbitPos.x - transStartX) * blend;
+          let y = transStartY + (orbitPos.y - transStartY) * blend;
           const rot = transStartRot + (orbitPos.rot - transStartRot) * blend;
 
-          applyPosition(x, y, rot);
+          const m = updateMouseHover(x, y);
+          applyPosition(m.x, m.y, rot);
 
           if (progress >= 1) {
             mode = "hero";
@@ -665,14 +668,7 @@
           x = m.x;
           y = m.y;
 
-          if (!isIdle || isHovered || cardTarget) {
-            applyPosition(x, y, rot);
-          } else {
-            currentX = x;
-            currentY = y;
-            currentRot = rot;
-            astronaut.style.transform = `translate3d(${x.toFixed(1)}px, ${y.toFixed(1)}px, 0)`;
-          }
+          applyPosition(x, y, rot);
 
           if (Math.abs(scrollVelocity) > 0.5) {
             exitIdle();
@@ -821,20 +817,42 @@
       });
     });
 
-    // Skills and Contact sections
-    ["skills", "contact"].forEach((id) => {
-      const section = document.getElementById(id);
-      if (section) {
-        section.addEventListener("mouseenter", () => {
-          setCardTarget(section);
-          // Contact: position higher (top third instead of center)
-          if (id === "contact" && cardTarget) {
-            const rect = section.getBoundingClientRect();
-            cardTarget.y = rect.top + rect.height * 0.2 - SIZE / 2;
-          }
-        });
-        section.addEventListener("mouseleave", () => { cardTarget = null; });
-      }
-    });
+    // Skills section: astronaut follows cursor Y level
+    let skillsHovered = false;
+    const skillsSection = document.getElementById("skills");
+    if (skillsSection) {
+      skillsSection.addEventListener("mouseenter", () => {
+        skillsHovered = true;
+        setCardTarget(skillsSection);
+      });
+      skillsSection.addEventListener("mouseleave", () => {
+        skillsHovered = false;
+        cardTarget = null;
+      });
+      skillsSection.addEventListener("mousemove", (e) => {
+        if (!skillsHovered || !cardTarget) return;
+        if (mode !== "scroll" && mode !== "dash-to-scroll") return;
+        cardTarget.y = e.clientY - SIZE / 2;
+      });
+    }
+
+    // Contact section: astronaut follows cursor Y level
+    let contactHovered = false;
+    const contactSection = document.getElementById("contact");
+    if (contactSection) {
+      contactSection.addEventListener("mouseenter", () => {
+        contactHovered = true;
+        setCardTarget(contactSection);
+      });
+      contactSection.addEventListener("mouseleave", () => {
+        contactHovered = false;
+        cardTarget = null;
+      });
+      contactSection.addEventListener("mousemove", (e) => {
+        if (!contactHovered || !cardTarget) return;
+        if (mode !== "scroll" && mode !== "dash-to-scroll") return;
+        cardTarget.y = e.clientY - SIZE / 2;
+      });
+    }
   }
 </script>
