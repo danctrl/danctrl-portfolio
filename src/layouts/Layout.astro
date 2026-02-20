@@ -12,21 +12,25 @@ const {
 } = Astro.props;
 
 const canonicalURL = new URL(Astro.url.pathname, "https://danctrl.dev");
-const ogImage = new URL("/og-image.png", "https://danctrl.dev");
+const ogImage = new URL("/portfolio_new.png", "https://danctrl.dev");
 ---
 
 <!doctype html>
 <html lang="en" class="dark scroll-smooth">
     <head>
         <meta charset="utf-8" />
-        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-        <link rel="icon" href="/favicon.ico" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+        <link rel="icon" type="image/png" sizes="192x192" href="/favicon-192.png" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no" />
+        <meta name="theme-color" content="#0a0a0a" />
+        <meta name="author" content="Daniel Guntermann" />
         <meta name="description" content={description} />
         <meta name="generator" content={Astro.generator} />
         <link rel="canonical" href={canonicalURL.href} />
         <!-- Open Graph -->
         <meta property="og:type" content="website" />
+        <meta property="og:site_name" content="danctrl.dev" />
         <meta property="og:url" content={canonicalURL.href} />
         <meta property="og:title" content={title} />
         <meta property="og:description" content={description} />
@@ -43,6 +47,27 @@ const ogImage = new URL("/og-image.png", "https://danctrl.dev");
             rel="stylesheet"
         />
         <title>{title}</title>
+        <!-- JSON-LD Structured Data -->
+        <script type="application/ld+json">
+        {
+          "@context": "https://schema.org",
+          "@type": "Person",
+          "name": "Daniel Guntermann",
+          "url": "https://danctrl.dev",
+          "jobTitle": "Junior DevOps Engineer",
+          "description": "DevOps enthusiast based in Berlin, bridging technical systems with business understanding.",
+          "address": {
+            "@type": "PostalAddress",
+            "addressLocality": "Berlin",
+            "addressCountry": "DE"
+          },
+          "sameAs": [
+            "https://github.com/danctrl",
+            "https://linkedin.com/in/danielguntermann"
+          ],
+          "knowsAbout": ["DevOps", "Podman", "RHEL", "Traefik", "Infrastructure Automation", "Containerization", "CI/CD", "Cybersecurity", "AI"]
+        }
+        </script>
         <script
             src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"
             async

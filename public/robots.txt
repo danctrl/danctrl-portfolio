@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://danctrl.dev/sitemap-index.xml
