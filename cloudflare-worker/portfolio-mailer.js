@@ -5,10 +5,10 @@
  * (from noreply@danctrl.dev) and forwards them to the destination address.
  *
  * Setup in Cloudflare Dashboard:
- *   1. Workers & Pages → Create → Worker → name it "portfolio-mailer"
+ *   1. Workers & Pages → Create → Worker → name it "danctrl-portfolio-mailer"
  *   2. Paste this code into the editor and deploy
  *   3. Email → Email Routing → Custom Addresses → noreply@danctrl.dev
- *      → Action: Send to Worker → portfolio-mailer
+ *      → Action: Send to Worker → danctrl-portfolio-mailer
  *   4. Add the environment variable FORWARD_TO (your real email address)
  *      in the Worker's Settings → Variables
  */
