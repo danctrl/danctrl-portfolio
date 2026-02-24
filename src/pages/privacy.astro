@@ -1,0 +1,91 @@
+---
+import Layout from "../layouts/Layout.astro";
+---
+
+<Layout
+    title="Privacy Policy – danctrl.dev – Daniel Guntermann, Berlin"
+    description="Privacy policy for danctrl.dev – the personal portfolio of Daniel Guntermann. Information on data collection, third-party services, and your rights under GDPR."
+>
+    <section class="mx-auto max-w-2xl px-6 pb-24 pt-36">
+
+        <!-- Back link -->
+        <a
+            href="/"
+            class="fade-in mb-10 inline-flex items-center gap-2 font-mono text-sm text-gray-400 transition-colors hover:text-emerald-600 dark:text-gray-500 dark:hover:text-emerald-400"
+        >
+            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+            </svg>
+            Back to danctrl.dev
+        </a>
+
+        <!-- Header -->
+        <div class="fade-in mb-10">
+            <div class="glass mb-8 inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-medium text-gray-500 dark:text-gray-400">
+                <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
+                Legal
+            </div>
+            <h1 class="font-mono text-3xl font-extrabold tracking-tight text-[#1a1a1a] sm:text-4xl dark:text-white">
+                Privacy Policy
+            </h1>
+            <p class="mt-3 text-sm text-gray-400 dark:text-gray-500">Last updated: February 2026</p>
+        </div>
+
+        <!-- Content -->
+        <div class="section-card space-y-8 rounded-2xl p-8 text-sm leading-relaxed text-gray-500 dark:text-gray-400">
+
+            <p>
+                This is the personal portfolio of <strong class="text-[#1a1a1a] dark:text-white">Daniel Guntermann</strong> (<code class="rounded bg-gray-100 px-1 dark:bg-white/10">danctrl.dev</code>). This site does not collect personal data beyond what is technically necessary to operate. No advertising networks, no user profiling, no third-party trackers beyond what is described below.
+            </p>
+
+            <div>
+                <h2 class="mb-3 font-mono text-sm font-semibold text-[#1a1a1a] dark:text-white">Third-party services</h2>
+                <p class="mb-3">The following third-party services are used to operate this site. Each has been chosen with privacy in mind.</p>
+                <ul class="space-y-3">
+                    <li>
+                        <strong class="text-[#1a1a1a] dark:text-white">Cloudflare Analytics</strong> – Cookie-free, privacy-friendly visitor analytics. No personal data is stored and no cookies are set. <a href="https://www.cloudflare.com/privacypolicy/" target="_blank" rel="noopener noreferrer" class="text-emerald-600 underline hover:text-emerald-500 dark:text-emerald-400">Cloudflare privacy policy →</a>
+                    </li>
+                    <li>
+                        <strong class="text-[#1a1a1a] dark:text-white">Cloudflare Turnstile</strong> – Bot protection used on the enquiry form. Turnstile verifies human visitors without setting tracking cookies or fingerprinting users.
+                    </li>
+                    <li>
+                        <strong class="text-[#1a1a1a] dark:text-white">Cloudflare Pages</strong> – This site is hosted on Cloudflare's global CDN. Cloudflare may process server access logs containing IP addresses as part of standard hosting and DDoS protection operations.
+                    </li>
+                    <li>
+                        <strong class="text-[#1a1a1a] dark:text-white">Google Fonts</strong> – Typefaces are loaded from Google's CDN, which may log your IP address as part of the request. <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer" class="text-emerald-600 underline hover:text-emerald-500 dark:text-emerald-400">Google privacy policy →</a>
+                    </li>
+                </ul>
+            </div>
+
+            <div>
+                <h2 class="mb-3 font-mono text-sm font-semibold text-[#1a1a1a] dark:text-white">Enquiry form</h2>
+                <p>Data submitted via the enquiry form (name, email address, message) is used solely to respond to your enquiry. It is not stored beyond what is required for that purpose and is never shared with third parties or used for marketing.</p>
+            </div>
+
+            <div>
+                <h2 class="mb-3 font-mono text-sm font-semibold text-[#1a1a1a] dark:text-white">Local storage</h2>
+                <p>A single <code class="rounded bg-gray-100 px-1 dark:bg-white/10">theme</code> key is stored in your browser's <code class="rounded bg-gray-100 px-1 dark:bg-white/10">localStorage</code> to remember your light/dark mode preference between visits. This data never leaves your device and no cookies are used for tracking or advertising purposes.</p>
+            </div>
+
+            <div>
+                <h2 class="mb-3 font-mono text-sm font-semibold text-[#1a1a1a] dark:text-white">Your rights under GDPR</h2>
+                <p>If you are located in the European Union or European Economic Area, you have the right to access, rectify, restrict processing of, or erase any personal data held about you. Since this site does not actively store personal data, there is typically nothing to retrieve or delete. You also have the right to lodge a complaint with your national data protection authority.</p>
+            </div>
+
+            <div>
+                <h2 class="mb-3 font-mono text-sm font-semibold text-[#1a1a1a] dark:text-white">Controller</h2>
+                <p>
+                    Daniel Guntermann<br />
+                    Berlin, Germany<br />
+                    Reach me via the <a href="/#contact" class="text-emerald-600 underline hover:text-emerald-500 dark:text-emerald-400">enquiry form on the homepage</a>.
+                </p>
+            </div>
+
+            <div>
+                <h2 class="mb-3 font-mono text-sm font-semibold text-[#1a1a1a] dark:text-white">Changes to this policy</h2>
+                <p>This privacy policy may be updated from time to time to reflect changes in the services used or applicable law. The date at the top of this page indicates when it was last revised. Continued use of the site after an update constitutes acceptance of the revised policy.</p>
+            </div>
+
+        </div>
+    </section>
+</Layout>
