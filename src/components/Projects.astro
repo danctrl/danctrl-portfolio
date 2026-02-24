@@ -5,7 +5,7 @@ const projects = [
     description:
       "Lightweight homelab stack using Podman and systemd on RHEL. Containerized services with Traefik reverse proxy and Authentik authentication.",
     status: "Live" as const,
-    image: "/homelab.png",
+    image: "/homelab.webp",
     stack: ["Podman", "RHEL", "Traefik", "Systemd", "DevOps"],
     link: "https://github.com/danctrl/podman-containers",
   },
@@ -14,7 +14,7 @@ const projects = [
     description:
       "Local-first Home Assistant instance running in a KVM virtual machine on RHEL. 409 entities, Zigbee/Matter integration, automated backups, secured with Traefik + Authentik.",
     status: "Live" as const,
-    image: "/smarthome.png",
+    image: "/smarthome.webp",
     stack: ["Home Assistant", "KVM", "Zigbee", "Matter", "YAML"],
     link: "https://github.com/danctrl/home-assistant-stadium",
   },
@@ -23,7 +23,7 @@ const projects = [
     description:
       "This website – built with Astro and Tailwind CSS, deployed on Cloudflare Pages with CI/CD. A meta-project showcasing DevOps thinking.",
     status: "Building" as const,
-    image: "/portfolio_new.png",
+    image: "/portfolio_new.webp",
     stack: ["Astro", "Tailwind CSS", "Cloudflare Pages", "TypeScript"],
     link: "https://github.com/danctrl/danctrl-portfolio",
   },
@@ -32,7 +32,7 @@ const projects = [
     description:
       "The original portfolio site – built with Hugo and deployed on Cloudflare Pages. Replaced by the current Astro-based version.",
     status: "Archived" as const,
-    image: "/portfolio_old.png",
+    image: "/portfolio_old.webp",
     stack: ["Hugo", "Go Templates", "Cloudflare Pages", "CI/CD"],
     link: "https://github.com/danctrl/danctrl.dev",
   },
@@ -41,7 +41,7 @@ const projects = [
     description:
       "Web application helping parents in Berlin find and apply to kindergartens. Built during Le Wagon coding bootcamp as a team project.",
     status: "Live" as const,
-    image: "/mykita.png",
+    image: "/mykita.webp",
     stack: ["Ruby on Rails", "PostgreSQL", "JavaScript", "Bootstrap"],
     link: "https://github.com/lamoureuxmarie/my-kita",
   },
@@ -110,7 +110,7 @@ const isArchived = (status: string) => status === "Archived";
           >
             {/* Thumbnail */}
             <div class="h-[200px] overflow-hidden bg-gray-100 dark:bg-white/5">
-              <img src={project.image} alt={project.title} loading="lazy" class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" />
+              <img src={project.image} alt={project.title} width="1280" height="640" loading={i === 0 ? "eager" : "lazy"} class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" />
             </div>
 
             <div class="p-6">

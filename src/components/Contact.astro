@@ -5,7 +5,7 @@
   </div>
 
   <div class="mx-auto max-w-5xl px-6">
-    <div id="contact-card" class="contact-card fade-in relative mx-auto max-w-2xl min-[1280px]:ml-auto min-[1280px]:mr-0">
+    <div id="contact-card" class="contact-card fade-in relative mx-auto max-w-2xl">
       <div class="contact-glow" aria-hidden="true"></div>
       <div class="section-card section-card--static relative z-10 rounded-2xl p-8 sm:p-12">
 
@@ -20,7 +20,7 @@
 
         <form action="/api/contact" method="POST" class="flex flex-col gap-5">
           <!-- Honeypot: hidden from real users, bots fill it in -->
-          <input type="text" name="website" class="hidden" tabindex="-1" autocomplete="off" aria-hidden="true" />
+          <input type="text" name="website" class="hidden" tabindex="-1" autocomplete="off" aria-label="Leave this field empty" />
 
           <div>
             <label for="name" class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Name</label>
