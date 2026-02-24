@@ -1,6 +1,27 @@
+interface SendEmail {
+  send(message: EmailMessage): Promise<void>;
+}
+
+interface EmailMessage {
+  from: string;
+  to: string;
+  subject: string;
+  text?: string;
+  html?: string;
+  headers?: Record<string, string>;
+  replyTo?: string;
+}
+
+// Cloudflare Pages does not expose email bindings the same way Workers do.
+// Instead the Pages Function calls the email-handler Worker via a Service Binding,
+// OR we use the EmailMessage / send_email binding available in the runtime.
+// The canonical approach for Pages Functions is to construct a raw RFC-2822 message
+// and send it via the send_email binding exposed as `context.env.SEND_EMAIL`.
+
 interface Env {
   TURNSTILE_SECRET_KEY: string;
   CONTACT_EMAIL: string;
+  SEND_EMAIL: SendEmail;
 }
 
 export const onRequestPost: PagesFunction<Env> = async (context) => {
@@ -56,46 +77,28 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     return Response.json({ error: "Turnstile verification failed." }, { status: 403 });
   }
 
-  // Send email via MailChannels
-  const emailResponse = await fetch("https://api.mailchannels.net/tx/v1/send", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      personalizations: [
-        {
-          to: [
-            {
-              email: context.env.CONTACT_EMAIL || "fallback@danctrl.dev",
-              name: "Daniel Guntermann",
-            },
-          ],
-        },
-      ],
-      from: {
-        email: "noreply@danctrl.dev",
-        name: "danctrl.dev Contact Form",
-      },
-      reply_to: {
-        email: email,
-        name: name,
-      },
-      subject: `Portfolio Contact: ${name}`,
-      content: [
-        {
-          type: "text/html",
-          value: `
-            <h2>New message from danctrl.dev</h2>
-            <p><strong>Name:</strong> ${name}</p>
-            <p><strong>Email:</strong> ${email}</p>
-            <hr>
-            <p>${message.replace(/\n/g, "<br>")}</p>
-          `,
-        },
-      ],
-    }),
-  });
+  // Send email via Cloudflare send_email binding → Email Routing → danctrl-email-handler Worker
+  try {
+    const destination = context.env.CONTACT_EMAIL || "fallback@danctrl.dev";
+    const htmlBody = `
+      <h2>New message from danctrl.dev</h2>
+      <p><strong>Name:</strong> ${name}</p>
+      <p><strong>Email:</strong> ${email}</p>
+      <hr>
+      <p>${message.replace(/\n/g, "<br>")}</p>
+    `;
+    const textBody = `New message from danctrl.dev\n\nName: ${name}\nEmail: ${email}\n\n${message}`;
 
-  if (!emailResponse.ok) {
+    await context.env.SEND_EMAIL.send({
+      from: "noreply@danctrl.dev",
+      to: destination,
+      subject: `Portfolio Contact: ${name}`,
+      html: htmlBody,
+      text: textBody,
+      replyTo: email,
+    });
+  } catch (err) {
+    console.error("send_email error:", err);
     return Response.json({ error: "Failed to send message." }, { status: 500 });
   }
 
