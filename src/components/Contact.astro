@@ -210,6 +210,7 @@
   const successView = document.getElementById("contact-success-view");
   const sendAnother = document.getElementById("contact-send-another");
   let turnstileReady = false;
+  let turnstileWidgetId: string | null = null;
 
   const sitekey = container?.dataset.sitekey ?? "";
 
@@ -219,11 +220,20 @@
 
   function renderTurnstile() {
     if (!container || !window.turnstile) return;
-    window.turnstile.render(container, {
+    turnstileWidgetId = window.turnstile.render(container, {
       sitekey,
       theme: getTurnstileTheme(),
       callback: () => submitForm(),
     });
+  }
+
+  function resetTurnstile() {
+    if (container) {
+      container.innerHTML = "";
+      container.classList.add("hidden");
+    }
+    turnstileWidgetId = null;
+    turnstileReady = false;
   }
 
   // Re-render Turnstile when user switches theme (if widget is currently shown)
@@ -231,6 +241,7 @@
     if (!turnstileReady || !container || container.classList.contains("hidden")) return;
     // Clear the DOM completely before re-rendering — reset() alone leaves the old widget in place
     container.innerHTML = "";
+    turnstileWidgetId = null;
     renderTurnstile();
   });
 
@@ -266,10 +277,8 @@
         // Show success view
         formView?.classList.add("hidden");
         successView?.classList.remove("hidden");
-        // Hide and reset Turnstile for next submission
-        if (container) container.classList.add("hidden");
-        if (window.turnstile) window.turnstile.reset();
-        turnstileReady = false;
+        // Fully destroy Turnstile widget so the used token is gone
+        resetTurnstile();
       } else {
         const data = await res.json().catch(() => ({})) as { error?: string };
         showError(data.error || "Something went wrong. Please try again.");
@@ -311,11 +320,12 @@
       return;
     }
 
-    // Show and render Turnstile on first click
+    // Show and render Turnstile on first click (only if not already shown)
     if (container && !turnstileReady) {
       container.classList.remove("hidden");
       turnstileReady = true;
       renderTurnstile();
     }
+    // If turnstileReady but no token yet: widget is visible, user just needs to complete the challenge
   });
 </script>
