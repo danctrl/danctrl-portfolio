@@ -318,10 +318,10 @@ const ogImage = new URL("/portfolio_new.webp", "https://danctrl.dev");
                                 rel="noopener noreferrer"
                                 class="text-gray-400 underline transition-colors hover:text-emerald-600 dark:text-gray-500 dark:hover:text-emerald-400"
                                 >rocket fuel</a
-                            > in Berlin &middot; <a
-                                href="/privacy/"
-                                class="text-gray-400 underline transition-colors hover:text-emerald-600 dark:text-gray-500 dark:hover:text-emerald-400"
-                                >Privacy</a
+                            > in Berlin &middot; <button
+                                id="privacy-open"
+                                class="text-gray-400 transition-colors hover:text-emerald-600 dark:text-gray-500 dark:hover:text-emerald-400"
+                                >Privacy</button
                             >
                         </p>
                     </div>
@@ -550,5 +550,87 @@ const ogImage = new URL("/portfolio_new.webp", "https://danctrl.dev");
         ></script>
         <!-- End Cloudflare Web Analytics -->
 
+        <!-- Privacy Policy Modal -->
+        <div
+            id="privacy-modal"
+            class="privacy-modal pointer-events-none fixed inset-0 z-[100] flex items-center justify-center p-4 opacity-0 transition-opacity duration-200"
+            aria-modal="true"
+            role="dialog"
+            aria-labelledby="privacy-title"
+        >
+            <!-- Backdrop -->
+            <div id="privacy-backdrop" class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
+
+            <!-- Panel -->
+            <div class="section-card relative z-10 w-full max-w-lg max-h-[80vh] overflow-y-auto rounded-2xl p-8">
+                <!-- Close button -->
+                <button
+                    id="privacy-close"
+                    class="absolute top-4 right-4 rounded-lg p-2 text-gray-400 transition-all hover:bg-emerald-600/10 hover:text-emerald-600 dark:text-gray-500 dark:hover:bg-emerald-400/10 dark:hover:text-emerald-400"
+                    aria-label="Close privacy policy"
+                >
+                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+
+                <h2 id="privacy-title" class="mb-6 font-mono text-lg font-bold text-[#1a1a1a] dark:text-white">Privacy Policy</h2>
+
+                <div class="space-y-5 text-sm leading-relaxed text-gray-500 dark:text-gray-400">
+                    <p>
+                        This is the personal portfolio of <strong class="text-[#1a1a1a] dark:text-white">Daniel Guntermann</strong>. This site does not collect personal data beyond what is technically necessary.
+                    </p>
+
+                    <div>
+                        <h3 class="mb-2 font-mono text-sm font-semibold text-[#1a1a1a] dark:text-white">Third-party services</h3>
+                        <ul class="space-y-2">
+                            <li><strong class="text-[#1a1a1a] dark:text-white">Cloudflare Analytics</strong> – cookie-free, privacy-friendly analytics. No personal data stored.</li>
+                            <li><strong class="text-[#1a1a1a] dark:text-white">Cloudflare Turnstile</strong> – bot protection on the contact form. No tracking cookies.</li>
+                            <li><strong class="text-[#1a1a1a] dark:text-white">Google Fonts</strong> – fonts loaded from Google's CDN, which may log your IP. <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer" class="text-emerald-600 hover:underline dark:text-emerald-400">Google's privacy policy →</a></li>
+                        </ul>
+                    </div>
+
+                    <div>
+                        <h3 class="mb-2 font-mono text-sm font-semibold text-[#1a1a1a] dark:text-white">Contact form</h3>
+                        <p>Data submitted via the contact form (name, email, message) is only used to respond to your enquiry and not stored beyond that.</p>
+                    </div>
+
+                    <div>
+                        <h3 class="mb-2 font-mono text-sm font-semibold text-[#1a1a1a] dark:text-white">Local storage</h3>
+                        <p>A single <code class="rounded bg-gray-100 px-1 dark:bg-white/10">theme</code> key is stored in <code class="rounded bg-gray-100 px-1 dark:bg-white/10">localStorage</code> to remember your light/dark mode preference. No tracking cookies are used.</p>
+                    </div>
+
+                    <p class="text-xs text-gray-400 dark:text-gray-600">Last updated: February 2026</p>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            const modal = document.getElementById("privacy-modal");
+            const openBtn = document.getElementById("privacy-open");
+            const closeBtn = document.getElementById("privacy-close");
+            const backdrop = document.getElementById("privacy-backdrop");
+
+            function openModal() {
+                if (!modal) return;
+                modal.classList.remove("pointer-events-none", "opacity-0");
+                modal.classList.add("pointer-events-auto", "opacity-100");
+                document.body.style.overflow = "hidden";
+            }
+
+            function closeModal() {
+                if (!modal) return;
+                modal.classList.add("pointer-events-none", "opacity-0");
+                modal.classList.remove("pointer-events-auto", "opacity-100");
+                document.body.style.overflow = "";
+            }
+
+            openBtn?.addEventListener("click", openModal);
+            closeBtn?.addEventListener("click", closeModal);
+            backdrop?.addEventListener("click", closeModal);
+            document.addEventListener("keydown", (e) => {
+                if (e.key === "Escape") closeModal();
+            });
+        </script>
     </body>
 </html>
