@@ -77,7 +77,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     return Response.json({ error: "Turnstile verification failed." }, { status: 403 });
   }
 
-  // Send email via Cloudflare send_email binding → Email Routing → danctrl-email-handler Worker
+  // Send email via Cloudflare send_email binding → Email Routing → portfolio-mailer Worker
   try {
     const destination = context.env.CONTACT_EMAIL || "fallback@danctrl.dev";
     const htmlBody = `
