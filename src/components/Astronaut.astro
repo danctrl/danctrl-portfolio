@@ -64,7 +64,7 @@
     const BASE_SIZE = 210;
     const MIN_SIZE = 140;
     const MIN_VIEWPORT = 1280;
-    const SCROLL_THRESHOLD = 100;
+    const SCROLL_THRESHOLD = 220;   // raised: gives orbit time to drift left before mode-switch
     const MAX_TILT = 12;
     const HOVER_RADIUS = 140;
     const MOUSE_ATTRACT = 0.04;
@@ -72,15 +72,17 @@
     const HERO_MOUSE_IDLE_MS = 2000; // ms idle before falling back to orbit
 
     // ── Smoothing speeds (per second) ──
-    const SMOOTH_POS = 4.5;
-    const SMOOTH_POS_FAST  = 8.0; // during dash
-    const SMOOTH_HERO_MOUSE = 2.1; // ~0.035 lerp/frame @ 60 fps – lazy mouse follow
+    const SMOOTH_POS = 5.5;         // slightly faster baseline for large screens
+    const SMOOTH_POS_FAST  = 10.0;  // dash: covers large distances quickly
+    const SMOOTH_HERO_MOUSE = 2.1;  // ~0.035 lerp/frame @ 60 fps – lazy mouse follow
     const SMOOTH_ROT = 3.5;
     const SMOOTH_SCALE = 8.0;
+    const CARDLEAVE_DELAY = 180;    // ms to keep flying toward card after mouseleave
 
     // ── Dynamic sizing ──
     let SIZE = BASE_SIZE;
     let isVisible = false;
+    let cachedMarginLeft = -1; // cached result of getContentMarginLeft()
 
     function getContentMarginLeft(): number {
       const el = document.querySelector("#hero .mx-auto") ||
@@ -93,10 +95,11 @@
       const vw = window.innerWidth;
       if (vw < MIN_VIEWPORT) {
         if (isVisible) { astro.style.display = "none"; isVisible = false; }
+        cachedMarginLeft = -1;
         return;
       }
-      const margin = getContentMarginLeft();
-      const space = margin - 30;
+      cachedMarginLeft = getContentMarginLeft();
+      const space = cachedMarginLeft - 30;
       if (space < MIN_SIZE) {
         if (isVisible) { astro.style.display = "none"; isVisible = false; }
         return;
@@ -126,6 +129,17 @@
 
     // Card hover
     let cardTarget: { x: number; y: number } | null = null;
+    let cardHoveredDot: HTMLElement | null = null;
+    let cardLeaveTimer: ReturnType<typeof setTimeout> | null = null;
+
+    function clearCardTarget() {
+      if (cardLeaveTimer) clearTimeout(cardLeaveTimer);
+      cardLeaveTimer = setTimeout(() => {
+        cardTarget = null;
+        cardHoveredDot = null;
+        cardLeaveTimer = null;
+      }, CARDLEAVE_DELAY);
+    }
 
     // Hero virtual time (orbit fallback)
     let heroTime = Math.random() * 100000;
@@ -159,19 +173,39 @@
 
       // Lissajous orbit covering the whole hero
       const t = heroTime * 0.00025;
-      const x = clamp(vw * 0.5 + Math.cos(t)       * vw * 0.32 - SIZE / 2, 10, vw - SIZE - 10);
-      const y = clamp(vh * 0.4 + Math.sin(t * 1.3) * vh * 0.25 - SIZE / 2, NAV, vh - SIZE - 10);
-      return { x, y, rot: Math.cos(t) * -12 };
+      const orbitX = vw * 0.5 + Math.cos(t)       * vw * 0.32 - SIZE / 2;
+      const orbitY = vh * 0.4 + Math.sin(t * 1.3) * vh * 0.25 - SIZE / 2;
+
+      // As scrollY approaches SCROLL_THRESHOLD, blend orbit toward gutter position
+      // so the mode-switch has near-zero distance to cover.
+      const ramp = heroToScrollRamp();
+      const gutterX = getScrollBaseX();
+      const gutterY = vh * 0.25 - SIZE / 2; // upper quarter — matches scroll mode entry point
+
+      const x = clamp(orbitX + (gutterX - orbitX) * ramp, 10, vw - SIZE - 10);
+      const y = clamp(orbitY + (gutterY - orbitY) * ramp, NAV, vh - SIZE - 10);
+      return { x, y, rot: Math.cos(t) * -12 * (1 - ramp) };
     }
 
     // ── Scroll position ──
     function getScrollBaseX(): number {
-      const margin = getContentMarginLeft();
+      // Use cached margin — only stale during a resize, which re-runs updateVisibility()
+      const margin = cachedMarginLeft > 0 ? cachedMarginLeft : getContentMarginLeft();
+      // Centre the astronaut in the left gutter rather than hugging the very edge
       return Math.max(10, (margin - SIZE) / 2);
     }
 
-    function getScrollTargetY(): number {
+    // Returns a 0→1 ramp of how far into the approach zone we are
+    // (0 = pure orbit, 1 = fully at gutter position)
+    function heroToScrollRamp(): number {
       const scrollY = window.scrollY;
+      const rampStart = SCROLL_THRESHOLD * 0.35; // start pulling at ~35% of threshold
+      if (scrollY <= rampStart) return 0;
+      if (scrollY >= SCROLL_THRESHOLD) return 1;
+      return (scrollY - rampStart) / (SCROLL_THRESHOLD - rampStart);
+    }
+
+    function getScrollTargetY(scrollY: number): number {
       const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
       if (maxScroll <= 0) return window.innerHeight * 0.2;
       const ratio = scrollY / maxScroll;
@@ -223,15 +257,17 @@
       smoothScrollVel += (scrollVelocity - smoothScrollVel) * damp(8, dt);
       lastScrollY = newScrollY;
 
-      // Dash detection: boost smoothing speed briefly when crossing threshold
-      if (!isDashing && newScrollY >= SCROLL_THRESHOLD && currentY < window.innerHeight * 0.3) {
+      // Dash detection: boost smoothing speed briefly when crossing threshold in either direction
+      const crossedIntoScroll = !isDashing && newScrollY >= SCROLL_THRESHOLD && (newScrollY - scrollVelocity) < SCROLL_THRESHOLD;
+      const crossedIntoHero   = !isDashing && newScrollY < SCROLL_THRESHOLD  && (newScrollY - scrollVelocity) >= SCROLL_THRESHOLD;
+      if (crossedIntoScroll || crossedIntoHero) {
         isDashing = true;
         astro.classList.add("scrolling");
         if (dashTimer) clearTimeout(dashTimer);
         dashTimer = setTimeout(() => {
           isDashing = false;
           astro.classList.remove("scrolling");
-        }, 500);
+        }, 600);
       }
 
       // ── 1. Determine target ──
@@ -255,7 +291,7 @@
         // ── Scroll mode ──
         const idleFloat = Math.sin(now * 0.002) * 6;
         targetX = getScrollBaseX();
-        targetY = getScrollTargetY() + idleFloat;
+        targetY = getScrollTargetY(newScrollY) + idleFloat;
         targetRot = clamp(smoothScrollVel * 1.2, -MAX_TILT, MAX_TILT);
         if (Math.abs(scrollVelocity) > 0.5) {
           astro.classList.add("scrolling");
@@ -282,9 +318,13 @@
       }
 
       // ── 4. Smooth everything ──
-      const speed = isDashing ? SMOOTH_POS_FAST
-                  : (inHero && heroMouseActive) ? SMOOTH_HERO_MOUSE
-                  : SMOOTH_POS;
+      // Adaptive speed: scale up linearly when distance is large (> 300 px → max speed)
+      const distToTarget = Math.sqrt((targetX - currentX) ** 2 + (targetY - currentY) ** 2);
+      const distFactor   = clamp(distToTarget / 300, 0, 1); // 0 at close range, 1 at ≥ 300 px
+      const baseSpeed    = isDashing ? SMOOTH_POS_FAST
+                         : (inHero && heroMouseActive) ? SMOOTH_HERO_MOUSE
+                         : SMOOTH_POS;
+      const speed = isDashing ? baseSpeed : baseSpeed + (SMOOTH_POS_FAST - baseSpeed) * distFactor;
       currentX += (targetX - currentX) * damp(speed, dt);
       currentY += (targetY - currentY) * damp(speed, dt);
       currentRot += (targetRot - currentRot) * damp(SMOOTH_ROT, dt);
@@ -310,14 +350,21 @@
     // ── Timeline dots ──
     const timelineEntries = document.querySelectorAll<HTMLElement>(".timeline-entry");
     const SECTION_EARLY = 20;
+    const DOT_UPDATE_THRESHOLD = 2; // px — skip getBoundingClientRect() if astronaut barely moved
     let activeDot: HTMLElement | null = null;
-    let cardHoveredDot: HTMLElement | null = null;
+    let lastDotUpdateY = -9999;
+    // cardHoveredDot is declared in the state block above
 
     function updateTimelineDots() {
       if (!isVisible || window.scrollY < SCROLL_THRESHOLD) {
         if (activeDot) { activeDot.classList.remove("astronaut-near"); activeDot = null; }
+        lastDotUpdateY = -9999;
         return;
       }
+
+      // Skip expensive getBoundingClientRect() calls if astronaut hasn't moved meaningfully
+      if (Math.abs(currentY - lastDotUpdateY) < DOT_UPDATE_THRESHOLD && !cardHoveredDot) return;
+      lastDotUpdateY = currentY;
 
       let bestDot: HTMLElement | null = cardHoveredDot;
 
@@ -358,13 +405,17 @@
         currentRot = pos.rot;
       } else {
         currentX = getScrollBaseX();
-        currentY = getScrollTargetY();
+        currentY = getScrollTargetY(window.scrollY);
       }
     }
     requestAnimationFrame(tick);
 
     // ── Event listeners ──
-    window.addEventListener("resize", updateVisibility);
+    let resizeTimer: ReturnType<typeof setTimeout> | null = null;
+    window.addEventListener("resize", () => {
+      if (resizeTimer) clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(() => { updateVisibility(); }, 120);
+    });
 
     document.addEventListener("mousemove", (e) => {
       mouseX = e.clientX;
@@ -407,39 +458,31 @@
     // Section cards
     document.querySelectorAll<HTMLElement>(".section-card:not(.section-card--static)").forEach((card) => {
       card.addEventListener("mouseenter", () => {
+        if (cardLeaveTimer) { clearTimeout(cardLeaveTimer); cardLeaveTimer = null; }
         setCardTarget(card);
         const entry = card.closest(".timeline-entry");
         cardHoveredDot = entry?.querySelector<HTMLElement>(".timeline-dot") || null;
       });
-      card.addEventListener("mouseleave", () => { cardTarget = null; cardHoveredDot = null; });
+      card.addEventListener("mouseleave", () => { clearCardTarget(); });
     });
 
-    // Hero CTA buttons: pull astronaut towards them on hover
-    document.querySelectorAll<HTMLElement>("#hero a.btn-primary, #hero a.btn-secondary").forEach((btn) => {
-      btn.addEventListener("mouseenter", () => { setCardTarget(btn, true); });
-      btn.addEventListener("mouseleave", () => { cardTarget = null; });
-    });
-
-    // Avatar + social links: move astronaut towards them on hover
-    const avatarWrap = document.querySelector<HTMLElement>(".avatar-wrap");
-    if (avatarWrap) {
-      avatarWrap.addEventListener("mouseenter", () => { setCardTarget(avatarWrap); });
-      avatarWrap.addEventListener("mouseleave", () => { cardTarget = null; });
-    }
-
-    const socialContainer = document.querySelector<HTMLElement>("#about a.btn-secondary")?.parentElement as HTMLElement | null;
-    if (socialContainer) {
-      socialContainer.addEventListener("mouseenter", () => { setCardTarget(socialContainer); });
-      socialContainer.addEventListener("mouseleave", () => { cardTarget = null; });
-    }
-
-    // About + Skills + Contact: follow cursor Y
+    // About + Skills + Contact: follow cursor Y within the gutter
     ["about", "skills", "contact"].forEach((id) => {
       const section = document.getElementById(id);
       if (!section) return;
       let hovered = false;
-      section.addEventListener("mouseenter", () => { hovered = true; setCardTarget(section); });
-      section.addEventListener("mouseleave", () => { hovered = false; cardTarget = null; });
+      section.addEventListener("mouseenter", (e) => {
+        if (cardLeaveTimer) { clearTimeout(cardLeaveTimer); cardLeaveTimer = null; }
+        if (window.scrollY < SCROLL_THRESHOLD) return;
+        hovered = true;
+        // Initialise X from the gutter, Y from current astronaut position —
+        // prevents a jump to the section centre on enter.
+        cardTarget = {
+          x: getScrollBaseX(),
+          y: currentY,
+        };
+      });
+      section.addEventListener("mouseleave", () => { hovered = false; clearCardTarget(); });
       section.addEventListener("mousemove", (e) => {
         if (!hovered || !cardTarget || window.scrollY < SCROLL_THRESHOLD) return;
         cardTarget.y = e.clientY - SIZE / 2;
@@ -450,9 +493,10 @@
     if (contactCard) {
       new MutationObserver(() => {
         if (contactCard.classList.contains("is-typing")) {
+          if (cardLeaveTimer) { clearTimeout(cardLeaveTimer); cardLeaveTimer = null; }
           setCardTarget(contactCard);
         } else {
-          cardTarget = null;
+          clearCardTarget();
         }
       }).observe(contactCard, { attributes: true, attributeFilter: ["class"] });
     }
