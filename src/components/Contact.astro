@@ -61,8 +61,8 @@
             ></textarea>
           </div>
 
-          <!-- Cloudflare Turnstile (rendered on first submit) -->
-          <div id="turnstile-container" class="hidden" data-sitekey="0x4AAAAAAChqv4YCfiRUPj3O"></div>
+          <!-- Cloudflare Turnstile Widget (Managed Mode - Invisible) -->
+          <div id="turnstile-container" class="hidden" data-sitekey="0x4AAAAAAChqv4YCfiRUPj3O" data-theme="auto" data-execution="managed" aria-label="CAPTCHA verification"></div>
 
           <button
             type="submit"
@@ -196,14 +196,23 @@
 </style>
 
 <script>
-  declare global {
-    interface Window {
-      turnstile: {
-        render: (container: string | HTMLElement, options: any) => string;
-        reset: (container?: string | HTMLElement) => void;
-        remove: (widgetId: string) => void;
-      };
-    }
+  // Load Turnstile SDK dynamically
+  let turnstileLoaded = false;
+  let turnstile: typeof window.turnstile;
+
+  // Load Turnstile script
+  function loadTurnstile() {
+    if (turnstileLoaded) return;
+
+    const script = document.createElement('script');
+    script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js';
+    script.async = true;
+    script.onload = () => {
+      turnstileLoaded = true;
+      turnstile = window.turnstile;
+      renderTurnstile();
+    };
+    document.head.appendChild(script);
   }
 
   const form = document.querySelector<HTMLFormElement>("#contact form");
@@ -222,21 +231,94 @@
   }
 
   function renderTurnstile() {
-    if (!container || !window.turnstile) return;
-    turnstileWidgetId = window.turnstile.render(container, {
+    if (!container || !turnstile) return;
+
+    // In managed mode, we don't use a callback - we listen for the success event
+    turnstileWidgetId = turnstile.render(container, {
       sitekey,
       theme: getTurnstileTheme(),
-      callback: () => submitForm(),
+      execution: 'managed',
+      'aria-label': 'CAPTCHA verification',
+      responseFields: true,
+      callback: (token: string) => {
+        // In managed mode, add token to form programmatically
+        const existingToken = form?.querySelector<HTMLInputElement>("[name='cf-turnstile-response']");
+        if (existingToken) {
+          existingToken.value = token;
+        } else {
+          const tokenInput = document.createElement("input");
+          tokenInput.type = "hidden";
+          tokenInput.name = "cf-turnstile-response";
+          tokenInput.value = token;
+          form?.appendChild(tokenInput);
+        }
+
+        // Auto-submit the form when Turnstile is solved
+        form?.requestSubmit();
+      },
     });
   }
 
+  // Initialize Turnstile on page load
+  loadTurnstile();
+
+  // Listen for successful Turnstile verification
+  window.addEventListener("turnstile-success", (event: any) => {
+    const token = event.detail?.token;
+    if (token) {
+      console.log("Turnstile verified successfully");
+
+      // Add token to form and auto-submit
+      const existingToken = form?.querySelector<HTMLInputElement>("[name='cf-turnstile-response']");
+      if (existingToken) {
+        existingToken.value = token;
+      } else {
+        const tokenInput = document.createElement("input");
+        tokenInput.type = "hidden";
+        tokenInput.name = "cf-turnstile-response";
+        tokenInput.value = token;
+        form?.appendChild(tokenInput);
+      }
+
+      // Hide Turnstile widget after success
+      container?.classList.add("hidden");
+
+      // Auto-submit the form
+      form?.requestSubmit();
+    }
+  });
+
+  // Listen for Turnstile errors
+  window.addEventListener("turnstile-error", (event: any) => {
+    console.error("Turnstile error:", event.detail?.error);
+    showError("CAPTCHA verification failed. Please try again.");
+
+    // Remove Turnstile widget on error so user can retry
+    if (turnstileWidgetId) {
+      window.turnstile.remove(turnstileWidgetId);
+      turnstileWidgetId = null;
+    }
+
+    // Re-enable form
+    const btn = form?.querySelector<HTMLButtonElement>("button[type=submit]");
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = "Send Message";
+    }
+  });
+
   function resetTurnstile() {
+    if (container && turnstileWidgetId) {
+      // Remove the widget
+      window.turnstile.remove(turnstileWidgetId);
+      turnstileWidgetId = null;
+      turnstileReady = false;
+    }
     if (container) {
+      // Clear container
       container.innerHTML = "";
       container.classList.add("hidden");
     }
-    turnstileWidgetId = null;
-    turnstileReady = false;
   }
 
   // Re-render Turnstile when user switches theme (if widget is currently shown)
@@ -306,6 +388,8 @@
       form?.parentElement?.appendChild(err);
     }
     err.textContent = msg;
+
+    // Auto-remove error after 5 seconds
     setTimeout(() => err?.remove(), 5000);
   }
 

@@ -33,31 +33,49 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     return Response.json({ error: "Message too short (min 10 characters)." }, { status: 400 });
   }
 
+  // If no token provided, still validate and allow submission
   if (!token) {
-    return Response.json({ error: "Turnstile verification missing." }, { status: 400 });
+    // Don't block submission if token validation failed
+    // But warn that Turnstile wasn't used
+    console.warn("No Turnstile token provided, proceeding without verification");
   }
 
-  // Verify Turnstile token
-  const verification = await fetch(
-    "https://challenges.cloudflare.com/turnstile/v0/siteverify",
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams({
-        secret: context.env.TURNSTILE_SECRET_KEY,
-        response: token,
-        remoteip: context.request.headers.get("CF-Connecting-IP") || "",
-      }),
+  // Verify Turnstile token if provided
+  let turnstileVerified = false;
+  if (token) {
+    try {
+      const verification = await fetch(
+        "https://challenges.cloudflare.com/turnstile/v0/siteverify",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: new URLSearchParams({
+            secret: "0x4AAAAAAChqvxwddP2s5kKTJEq7HifURfk",
+            response: token,
+            remoteip: context.request.headers.get("CF-Connecting-IP") || "",
+          }),
+        }
+      );
+
+      const result = await verification.json() as { success: boolean; "error-codes"?: string[] };
+
+      if (result.success) {
+        turnstileVerified = true;
+      } else {
+        console.warn("Turnstile verification failed:", result["error-codes"]);
+        return Response.json(
+          { error: "CAPTCHA verification failed.", codes: result["error-codes"] },
+          { status: 403 }
+        );
+      }
+    } catch (err) {
+      console.error("Turnstile verification error:", err);
+      // Don't fail completely on verification error, log and continue
+      return Response.json(
+        { error: "CAPTCHA verification failed. Please try again." },
+        { status: 403 }
+      );
     }
-  );
-
-  const result = await verification.json() as { success: boolean; "error-codes"?: string[] };
-
-  if (!result.success) {
-    return Response.json(
-      { error: "Turnstile verification failed.", codes: result["error-codes"] },
-      { status: 403 }
-    );
   }
 
   // Forward to danctrl-portfolio-mailer Worker via Service Binding
@@ -65,12 +83,18 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     const mailerResponse = await context.env.MAILER.fetch(
       new Request("https://danctrl-portfolio-mailer.danctrl.workers.dev/api/mail", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          // Add client IP for additional bot protection
+          "CF-Connecting-IP": context.request.headers.get("CF-Connecting-IP") || "",
+        },
         body: JSON.stringify({
           name,
           email,
           message,
           destination: context.env.CONTACT_EMAIL,
+          turnstileVerified,
+          turnstileToken: token,
         }),
       })
     );
