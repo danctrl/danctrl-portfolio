@@ -1,4 +1,4 @@
 name = "danctrl-portfolio"
-
+name = 'danctrl-portfolio-mailer'
 [upload]
 main = "./dist"
