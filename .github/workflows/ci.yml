@@ -65,6 +65,7 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          wranglerVersion: "4.67.0"
           # Run from repo root — wrangler.toml defines pages_build_output_dir=dist
           # and wrangler picks up functions/ automatically
           command: pages deploy --project-name=danctrl-portfolio ${{ github.ref == 'refs/heads/master' && '--branch=master' || '' }}
