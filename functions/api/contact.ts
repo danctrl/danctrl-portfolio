@@ -1,10 +1,7 @@
-import { EmailMessage } from "cloudflare:email";
-import { createMimeMessage } from "mimetext";
-
 interface Env {
   TURNSTILE_SECRET_KEY: string;
   CONTACT_EMAIL: string;
-  SEND_EMAIL: SendEmail;
+  MAILER: Fetcher; // Service Binding to danctrl-portfolio-mailer Worker
 }
 
 export const onRequestPost: PagesFunction<Env> = async (context) => {
@@ -22,9 +19,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
 
   // Validate required fields
   if (!name || !email || !message) {
-    const debug = { name: !!name, email: !!email, message: !!message };
-    console.error("Validation failed:", JSON.stringify(debug));
-    return Response.json({ error: "All fields are required.", debug }, { status: 400 });
+    return Response.json({ error: "All fields are required." }, { status: 400 });
   }
 
   // Email format validation
@@ -59,32 +54,34 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
   const result = await verification.json() as { success: boolean; "error-codes"?: string[] };
 
   if (!result.success) {
-    return Response.json({ error: "Turnstile verification failed.", codes: result["error-codes"] }, { status: 403 });
+    return Response.json(
+      { error: "Turnstile verification failed.", codes: result["error-codes"] },
+      { status: 403 }
+    );
   }
 
-  // Send email via Cloudflare send_email binding
+  // Forward to danctrl-portfolio-mailer Worker via Service Binding
   try {
-    const destination = context.env.CONTACT_EMAIL;
-    const sender = "noreply@danctrl.dev";
+    const mailerResponse = await context.env.MAILER.fetch(
+      new Request("https://danctrl-portfolio-mailer.danctrl.workers.dev/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name,
+          email,
+          message,
+          destination: context.env.CONTACT_EMAIL,
+        }),
+      })
+    );
 
-    const msg = createMimeMessage();
-    msg.setSender({ name: "danctrl.dev Contact Form", addr: sender });
-    msg.setRecipient(destination);
-    msg.setHeader("Reply-To", email);
-    msg.setSubject(`Portfolio Contact: ${name}`);
-    msg.addMessage({
-      contentType: "text/plain",
-      data: `New message from danctrl.dev\n\nName: ${name}\nEmail: ${email}\n\n${message}`,
-    });
-    msg.addMessage({
-      contentType: "text/html",
-      data: `<h2>New message from danctrl.dev</h2><p><strong>Name:</strong> ${name}</p><p><strong>Email:</strong> ${email}</p><hr><p>${message.replace(/\n/g, "<br>")}</p>`,
-    });
-
-    const emailMessage = new EmailMessage(sender, destination, msg.asRaw());
-    await context.env.SEND_EMAIL.send(emailMessage);
+    if (!mailerResponse.ok) {
+      const err = await mailerResponse.json() as { error?: string };
+      console.error("Mailer error:", err);
+      return Response.json({ error: "Failed to send message." }, { status: 500 });
+    }
   } catch (err) {
-    console.error("send_email error:", err);
+    console.error("Service binding error:", err);
     return Response.json({ error: "Failed to send message." }, { status: 500 });
   }
 
