@@ -50,7 +50,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
           method: "POST",
           headers: { "Content-Type": "application/x-www-form-urlencoded" },
           body: new URLSearchParams({
-            secret: "0x4AAAAAAChqvxwddP2s5kKTJEq7HifURfk",
+            secret: context.env.TURNSTILE_SECRET_KEY,
             response: token,
             remoteip: context.request.headers.get("CF-Connecting-IP") || "",
           }),

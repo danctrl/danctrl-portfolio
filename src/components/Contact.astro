@@ -204,15 +204,7 @@
   function loadTurnstile() {
     if (turnstileLoaded) return;
 
-    const script = document.createElement('script');
-    script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js';
-    script.async = true;
-    script.onload = () => {
-      turnstileLoaded = true;
-      turnstile = window.turnstile;
-      renderTurnstile();
-    };
-    document.head.appendChild(script);
+  <script type="module" defer src='https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit' is:inline></script>
   }
 
   const form = document.querySelector<HTMLFormElement>("#contact form");
