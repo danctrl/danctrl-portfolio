@@ -60,10 +60,10 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     );
   }
 
-  // Forward to danctrl-portfolio-mailer Worker via Service Binding
-  try {
+   // Forward to danctrl-portfolio-mailer Worker via Service Binding (internal)
+   try {
     const mailerResponse = await context.env.MAILER.fetch(
-      new Request("https://danctrl-portfolio-mailer.danctrl.workers.dev/", {
+      new Request(new URL("/api/mail", context.request.url), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
