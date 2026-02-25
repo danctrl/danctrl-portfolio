@@ -60,20 +60,20 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     );
   }
 
-   // Forward to danctrl-portfolio-mailer Worker via Service Binding (internal)
-   try {
-    const mailerResponse = await context.env.MAILER.fetch(
-      new Request(new URL("/api/mail", context.request.url), {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name,
-          email,
-          message,
-          destination: context.env.CONTACT_EMAIL,
-        }),
-      })
-    );
+    // Forward to danctrl-portfolio-mailer Worker via Service Binding
+    try {
+     const mailerResponse = await context.env.MAILER.fetch(
+       new Request("https://danctrl-portfolio-mailer.danctrl.workers.dev/api/mail", {
+         method: "POST",
+         headers: { "Content-Type": "application/json" },
+         body: JSON.stringify({
+           name,
+           email,
+           message,
+           destination: context.env.CONTACT_EMAIL,
+         }),
+       })
+     );
 
     if (!mailerResponse.ok) {
       const err = await mailerResponse.json() as { error?: string };
