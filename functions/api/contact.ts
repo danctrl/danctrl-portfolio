@@ -1,22 +1,5 @@
-interface SendEmail {
-  send(message: EmailMessage): Promise<void>;
-}
-
-interface EmailMessage {
-  from: string;
-  to: string;
-  subject: string;
-  text?: string;
-  html?: string;
-  headers?: Record<string, string>;
-  replyTo?: string;
-}
-
-// Cloudflare Pages does not expose email bindings the same way Workers do.
-// Instead the Pages Function calls the email-handler Worker via a Service Binding,
-// OR we use the EmailMessage / send_email binding available in the runtime.
-// The canonical approach for Pages Functions is to construct a raw RFC-2822 message
-// and send it via the send_email binding exposed as `context.env.SEND_EMAIL`.
+import { EmailMessage } from "cloudflare:email";
+import { createMimeMessage } from "mimetext";
 
 interface Env {
   TURNSTILE_SECRET_KEY: string;
@@ -79,26 +62,27 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     return Response.json({ error: "Turnstile verification failed.", codes: result["error-codes"] }, { status: 403 });
   }
 
-  // Send email via Cloudflare send_email binding → Email Routing → danctrl-portfolio-mailer Worker
+  // Send email via Cloudflare send_email binding
   try {
-    const destination = context.env.CONTACT_EMAIL || "fallback@danctrl.dev";
-    const htmlBody = `
-      <h2>New message from danctrl.dev</h2>
-      <p><strong>Name:</strong> ${name}</p>
-      <p><strong>Email:</strong> ${email}</p>
-      <hr>
-      <p>${message.replace(/\n/g, "<br>")}</p>
-    `;
-    const textBody = `New message from danctrl.dev\n\nName: ${name}\nEmail: ${email}\n\n${message}`;
+    const destination = context.env.CONTACT_EMAIL;
+    const sender = "noreply@danctrl.dev";
 
-    await context.env.SEND_EMAIL.send({
-      from: "noreply@danctrl.dev",
-      to: destination,
-      subject: `Portfolio Contact: ${name}`,
-      html: htmlBody,
-      text: textBody,
-      replyTo: email,
+    const msg = createMimeMessage();
+    msg.setSender({ name: "danctrl.dev Contact Form", addr: sender });
+    msg.setRecipient(destination);
+    msg.setHeader("Reply-To", email);
+    msg.setSubject(`Portfolio Contact: ${name}`);
+    msg.addMessage({
+      contentType: "text/plain",
+      data: `New message from danctrl.dev\n\nName: ${name}\nEmail: ${email}\n\n${message}`,
     });
+    msg.addMessage({
+      contentType: "text/html",
+      data: `<h2>New message from danctrl.dev</h2><p><strong>Name:</strong> ${name}</p><p><strong>Email:</strong> ${email}</p><hr><p>${message.replace(/\n/g, "<br>")}</p>`,
+    });
+
+    const emailMessage = new EmailMessage(sender, destination, msg.asRaw());
+    await context.env.SEND_EMAIL.send(emailMessage);
   } catch (err) {
     console.error("send_email error:", err);
     return Response.json({ error: "Failed to send message." }, { status: 500 });
