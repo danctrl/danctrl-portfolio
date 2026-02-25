@@ -1,16 +1,13 @@
 {
-  "name": "cloudflare-worker",
+  "name": "danctrl-portfolio-mailer",
   "version": "1.0.0",
-  "description": "",
-  "main": "portfolio-mailer.js",
+  "private": true,
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "echo 'No build step required'",
+    "deploy": "wrangler deploy"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "type": "commonjs",
   "dependencies": {
-    "mimetext": "^3.0.28"
+    "mimetext": "^3.0.28",
+    "wrangler": "^4.67.0"
   }
 }

@@ -1,3 +1,8 @@
 name = "danctrl-portfolio-mailer"
-main = "portfolio-mailer.js"
+main = "mailer-worker.ts"
 compatibility_date = "2024-01-01"
+compatibility_flags = ["nodejs_compat"]
+
+[[send_email]]
+name = "SEND_EMAIL"
+destination_address = "d.guntermann@me.com"
