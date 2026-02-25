@@ -40,16 +40,13 @@ const ogImage = new URL("/portfolio_new.webp", "https://danctrl.dev");
         <meta name="twitter:title" content={title} />
         <meta name="twitter:description" content={description} />
         <meta name="twitter:image" content={ogImage.href} />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <!-- Preload self-hosted fonts -->
+        <link rel="preload" as="font" type="font/woff2" href="/fonts/jetbrains-mono-400.woff2" crossorigin />
+        <link rel="preload" as="font" type="font/woff2" href="/fonts/poppins-400.woff2" crossorigin />
         <!-- Preload LCP images -->
         <link rel="preload" as="image" href="/astronaut.svg" />
         <link rel="preload" as="image" href="/avatar.webp" type="image/webp" />
         <link rel="preload" as="image" href="/homelab.webp" type="image/webp" />
-        <link
-            href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700;800&family=Poppins:wght@400;500;600;700&display=swap"
-            rel="stylesheet"
-        />
         <title>{title}</title>
         <!-- JSON-LD Structured Data -->
         <script type="application/ld+json">
@@ -586,7 +583,7 @@ const ogImage = new URL("/portfolio_new.webp", "https://danctrl.dev");
                         <ul class="space-y-2">
                             <li><strong class="text-[#1a1a1a] dark:text-white">Cloudflare Analytics</strong> – cookie-free, privacy-friendly analytics. No personal data stored.</li>
                             <li><strong class="text-[#1a1a1a] dark:text-white">Cloudflare Turnstile</strong> – bot protection on the contact form. No tracking cookies.</li>
-                            <li><strong class="text-[#1a1a1a] dark:text-white">Google Fonts</strong> – fonts loaded from Google's CDN, which may log your IP. <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer" class="text-emerald-600 hover:underline dark:text-emerald-400">Google's privacy policy →</a></li>
+                            <li><strong class="text-[#1a1a1a] dark:text-white">Fonts</strong> – JetBrains Mono and Poppins are self-hosted on this site. No requests are made to Google Fonts or any external font CDN.</li>
                         </ul>
                     </div>
 
