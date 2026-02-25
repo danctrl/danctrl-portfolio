@@ -31,10 +31,6 @@ jobs:
       - name: Build
         run: npm run build
 
-      # Copy functions into dist so they deploy together
-      - name: Copy Pages Functions into dist
-        run: cp -r functions dist/
-
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
@@ -53,6 +49,10 @@ jobs:
       pull-requests: write
 
     steps:
+      # Checkout needed so wrangler.toml + functions/ are present
+      - name: Checkout
+        uses: actions/checkout@v4
+
       - name: Download build artifact
         uses: actions/download-artifact@v4
         with:
@@ -65,7 +65,9 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy dist/ --project-name=danctrl-portfolio ${{ github.ref == 'refs/heads/master' && '--branch=master' || '' }}
+          # Run from repo root — wrangler.toml defines pages_build_output_dir=dist
+          # and wrangler picks up functions/ automatically
+          command: pages deploy --project-name=danctrl-portfolio ${{ github.ref == 'refs/heads/master' && '--branch=master' || '' }}
 
       - name: Comment Preview URL on PR
         if: github.event_name == 'pull_request'
