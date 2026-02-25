@@ -31,6 +31,10 @@ jobs:
       - name: Build
         run: npm run build
 
+      # Copy functions into dist so they deploy together
+      - name: Copy Pages Functions into dist
+        run: cp -r functions dist/
+
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
