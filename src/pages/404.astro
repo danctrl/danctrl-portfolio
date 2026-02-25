@@ -1,0 +1,23 @@
+---
+import Layout from "../layouts/Layout.astro";
+---
+
+<Layout title="404 – Page Not Found | danctrl.dev" description="This page does not exist.">
+  <section id="hero" class="flex min-h-screen items-center justify-center px-6">
+    <div class="text-center">
+      <p class="mb-4 font-mono text-sm font-semibold uppercase tracking-widest text-emerald-600 dark:text-emerald-400">404</p>
+      <h1 class="mb-4 font-mono text-4xl font-extrabold text-[#1a1a1a] dark:text-white sm:text-5xl">
+        Page not found
+      </h1>
+      <p class="mb-8 text-gray-500 dark:text-gray-400">
+        This route does not exist. Maybe it was moved or never deployed.
+      </p>
+      <a
+        href="/"
+        class="btn-primary inline-flex h-[44px] items-center gap-2 rounded-lg px-6 text-sm"
+      >
+        ← Back to home
+      </a>
+    </div>
+  </section>
+</Layout>
