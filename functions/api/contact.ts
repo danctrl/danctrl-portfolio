@@ -39,7 +39,9 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
 
   // Validate required fields
   if (!name || !email || !message) {
-    return Response.json({ error: "All fields are required." }, { status: 400 });
+    const debug = { name: !!name, email: !!email, message: !!message };
+    console.error("Validation failed:", JSON.stringify(debug));
+    return Response.json({ error: "All fields are required.", debug }, { status: 400 });
   }
 
   // Email format validation
@@ -71,10 +73,10 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     }
   );
 
-  const result = await verification.json() as { success: boolean };
+  const result = await verification.json() as { success: boolean; "error-codes"?: string[] };
 
   if (!result.success) {
-    return Response.json({ error: "Turnstile verification failed." }, { status: 403 });
+    return Response.json({ error: "Turnstile verification failed.", codes: result["error-codes"] }, { status: 403 });
   }
 
   // Send email via Cloudflare send_email binding → Email Routing → danctrl-portfolio-mailer Worker
