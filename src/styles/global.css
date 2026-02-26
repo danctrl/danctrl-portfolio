@@ -170,6 +170,9 @@ html.theme-transition *::after {
   border: 1px solid rgba(0, 0, 0, 0.04);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 4px 12px rgba(0, 0, 0, 0.04);
   transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  /* Chrome fix: force GPU layer so backdrop-filter renders */
+  transform: translateZ(0);
+  will-change: transform;
 }
 
 .section-card:not(.section-card--static) {
@@ -183,7 +186,7 @@ html.theme-transition *::after {
 }
 
 .dark .section-card {
-  background-color: rgba(255, 255, 255, 0.04);
+  background-color: rgba(255, 255, 255, 0.06);
   border-color: rgba(255, 255, 255, 0.06);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3), 0 4px 12px rgba(0, 0, 0, 0.2);
 }
@@ -276,6 +279,9 @@ html.theme-transition *::after {
   font-family: var(--font-mono);
   letter-spacing: 0.02em;
   transition: color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+  /* Chrome fix: force GPU layer so backdrop-filter renders */
+  transform: translateZ(0);
+  will-change: transform;
 }
 
 .btn-secondary:hover {
@@ -498,4 +504,32 @@ html.theme-transition *::after {
   50% {
     opacity: 0;
   }
+}
+
+/* Skill pills – enhanced glass with emerald glow */
+.skill-pill {
+  background-color: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06), 0 0 0 0 rgba(16, 185, 129, 0);
+  transform: translateZ(0);
+  will-change: transform;
+  transition: box-shadow 0.3s ease, border-color 0.3s ease, background-color 0.3s ease;
+}
+
+.skill-pill:hover {
+  border-color: rgba(16, 185, 129, 0.4);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06), 0 0 12px rgba(16, 185, 129, 0.15);
+}
+
+.dark .skill-pill {
+  background-color: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2), 0 0 0 0 rgba(16, 185, 129, 0);
+}
+
+.dark .skill-pill:hover {
+  border-color: rgba(16, 185, 129, 0.4);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2), 0 0 12px rgba(16, 185, 129, 0.2);
 }

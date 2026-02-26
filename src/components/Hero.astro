@@ -256,6 +256,9 @@ const titles = [
         let lastTime = 0;
         let animFrame = 0;
 
+        // Prevent scroll interference on draggable shapes
+        shape.style.touchAction = "none";
+
         // Convert initial positioning (right/bottom/%) to left/top px on first interaction
         function ensureLeftTop() {
             const rect = shape.getBoundingClientRect();
@@ -267,41 +270,43 @@ const titles = [
             shape.style.bottom = "auto";
         }
 
-        shape.addEventListener("mousedown", (e: MouseEvent) => {
+        // Shared start logic for mouse and touch
+        function startDrag(clientX: number, clientY: number) {
             isDragging = true;
             shape.style.animation = "none";
             shape.style.cursor = "grabbing";
             ensureLeftTop();
             startLeft = parseFloat(shape.style.left);
             startTop = parseFloat(shape.style.top);
-            startMouseX = e.clientX;
-            startMouseY = e.clientY;
-            lastX = e.clientX;
-            lastY = e.clientY;
+            startMouseX = clientX;
+            startMouseY = clientY;
+            lastX = clientX;
+            lastY = clientY;
             lastTime = Date.now();
             velX = 0;
             velY = 0;
             cancelAnimationFrame(animFrame);
-            e.preventDefault();
-        });
+        }
 
-        document.addEventListener("mousemove", (e: MouseEvent) => {
+        // Shared move logic for mouse and touch
+        function moveDrag(clientX: number, clientY: number) {
             if (!isDragging) return;
-            const x = startLeft + (e.clientX - startMouseX);
-            const y = startTop + (e.clientY - startMouseY);
+            const x = startLeft + (clientX - startMouseX);
+            const y = startTop + (clientY - startMouseY);
             shape.style.left = x + "px";
             shape.style.top = y + "px";
 
             const now = Date.now();
             const dt = now - lastTime || 1;
-            velX = (e.clientX - lastX) / dt * 16;
-            velY = (e.clientY - lastY) / dt * 16;
-            lastX = e.clientX;
-            lastY = e.clientY;
+            velX = (clientX - lastX) / dt * 16;
+            velY = (clientY - lastY) / dt * 16;
+            lastX = clientX;
+            lastY = clientY;
             lastTime = now;
-        });
+        }
 
-        document.addEventListener("mouseup", () => {
+        // Shared end logic for mouse and touch
+        function endDrag() {
             if (!isDragging) return;
             isDragging = false;
             shape.style.cursor = "grab";
@@ -322,6 +327,35 @@ const titles = [
                 animFrame = requestAnimationFrame(drift);
             }
             drift();
+        }
+
+        // Mouse events
+        shape.addEventListener("mousedown", (e: MouseEvent) => {
+            startDrag(e.clientX, e.clientY);
+            e.preventDefault();
         });
+
+        document.addEventListener("mousemove", (e: MouseEvent) => {
+            moveDrag(e.clientX, e.clientY);
+        });
+
+        document.addEventListener("mouseup", endDrag);
+
+        // Touch events
+        shape.addEventListener("touchstart", (e: TouchEvent) => {
+            if (e.touches.length !== 1) return;
+            const t = e.touches[0];
+            startDrag(t.clientX, t.clientY);
+            e.preventDefault();
+        }, { passive: false });
+
+        document.addEventListener("touchmove", (e: TouchEvent) => {
+            if (!isDragging || e.touches.length !== 1) return;
+            const t = e.touches[0];
+            moveDrag(t.clientX, t.clientY);
+        }, { passive: true });
+
+        document.addEventListener("touchend", endDrag);
+        document.addEventListener("touchcancel", endDrag);
     });
 </script>

@@ -1,4 +1,9 @@
 name = "danctrl-portfolio"
-name = 'danctrl-portfolio-mailer'
-[upload]
-main = "./dist"
+pages_build_output_dir = "./dist"
+
+[vars]
+CONTACT_EMAIL = "d.guntermann@me.com"
+
+[[services]]
+binding = "MAILER"
+service = "danctrl-portfolio-mailer"

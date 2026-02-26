@@ -2,22 +2,182 @@
 import Layout from "../layouts/Layout.astro";
 ---
 
-<Layout title="404 – Page Not Found | danctrl.dev" description="This page does not exist.">
-  <section id="hero" class="flex min-h-screen items-center justify-center px-6">
-    <div class="text-center">
-      <p class="mb-4 font-mono text-sm font-semibold uppercase tracking-widest text-emerald-600 dark:text-emerald-400">404</p>
-      <h1 class="mb-4 font-mono text-4xl font-extrabold text-[#1a1a1a] dark:text-white sm:text-5xl">
-        Page not found
+<Layout minimal title="404 – Page Not Found | danctrl.dev" description="This page does not exist.">
+  <section class="not-found-section relative flex min-h-screen items-center justify-center overflow-hidden px-6">
+    <!-- Star field background -->
+    <div class="star-field absolute inset-0 -z-10" aria-hidden="true"></div>
+
+    <div class="relative z-10 text-center">
+      <!-- Neon flickering 404 -->
+      <h1 class="neon-404 mb-4 select-none font-mono text-7xl font-extrabold sm:text-8xl md:text-9xl" aria-label="404">
+        <span class="neon-digit neon-flicker-1">4</span><span class="neon-digit neon-flicker-2">0</span><span class="neon-digit neon-flicker-3">4</span>
       </h1>
-      <p class="mb-8 text-gray-500 dark:text-gray-400">
-        This route does not exist. Maybe it was moved or never deployed.
+
+      <!-- Tagline -->
+      <p class="mb-2 font-mono text-base text-gray-400 sm:text-lg">
+        Lost in the void. No signal detected.
       </p>
+      <p class="mb-10 text-sm text-gray-500">
+        The route you requested does not exist or was never deployed.
+      </p>
+
+      <!-- Return home CTA -->
       <a
         href="/"
         class="btn-primary inline-flex h-[44px] items-center gap-2 rounded-lg px-6 text-sm"
       >
-        ← Back to home
+        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 17l-4-4m0 0l4-4m-4 4h18" />
+        </svg>
+        Back to home
       </a>
     </div>
   </section>
 </Layout>
+
+<style>
+  /* ── Star field ── */
+  .star-field {
+    background-color: #0a0a0a;
+  }
+
+  .star-field::before,
+  .star-field::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image:
+      radial-gradient(1px 1px at 20px 30px, rgba(255, 255, 255, 0.6), transparent),
+      radial-gradient(1px 1px at 80px 120px, rgba(255, 255, 255, 0.5), transparent),
+      radial-gradient(1px 1px at 160px 60px, rgba(255, 255, 255, 0.4), transparent),
+      radial-gradient(1.5px 1.5px at 250px 200px, rgba(255, 255, 255, 0.7), transparent),
+      radial-gradient(1px 1px at 350px 80px, rgba(255, 255, 255, 0.3), transparent),
+      radial-gradient(1px 1px at 420px 280px, rgba(255, 255, 255, 0.5), transparent),
+      radial-gradient(1.5px 1.5px at 530px 150px, rgba(255, 255, 255, 0.6), transparent),
+      radial-gradient(1px 1px at 620px 320px, rgba(255, 255, 255, 0.4), transparent),
+      radial-gradient(1px 1px at 700px 50px, rgba(255, 255, 255, 0.5), transparent),
+      radial-gradient(1px 1px at 800px 250px, rgba(255, 255, 255, 0.3), transparent);
+    background-size: 850px 400px;
+    animation: star-drift 120s linear infinite;
+  }
+
+  .star-field::after {
+    background-image:
+      radial-gradient(1px 1px at 50px 180px, rgba(255, 255, 255, 0.5), transparent),
+      radial-gradient(1.5px 1.5px at 150px 90px, rgba(255, 255, 255, 0.6), transparent),
+      radial-gradient(1px 1px at 300px 270px, rgba(255, 255, 255, 0.4), transparent),
+      radial-gradient(1px 1px at 450px 140px, rgba(255, 255, 255, 0.3), transparent),
+      radial-gradient(1px 1px at 550px 340px, rgba(255, 255, 255, 0.5), transparent),
+      radial-gradient(1.5px 1.5px at 680px 60px, rgba(255, 255, 255, 0.7), transparent),
+      radial-gradient(1px 1px at 770px 210px, rgba(255, 255, 255, 0.4), transparent);
+    background-size: 800px 380px;
+    animation: star-drift 180s linear infinite reverse;
+    opacity: 0.7;
+  }
+
+  @keyframes star-drift {
+    from { transform: translateY(0); }
+    to { transform: translateY(-400px); }
+  }
+
+  /* Force dark bg on light mode too — 404 is always space-themed */
+  .not-found-section {
+    background-color: #0a0a0a;
+  }
+
+  :root:not(.dark) .star-field {
+    background-color: #0a0a0a;
+  }
+
+  /* Ensure text stays light even in light mode */
+  :root:not(.dark) .neon-404,
+  :root:not(.dark) .neon-digit {
+    color: #10b981;
+  }
+
+  /* ── Neon 404 text ── */
+  .neon-404 {
+    color: #10b981;
+    text-shadow:
+      0 0 7px rgba(16, 185, 129, 0.6),
+      0 0 20px rgba(16, 185, 129, 0.4),
+      0 0 40px rgba(16, 185, 129, 0.2),
+      0 0 80px rgba(16, 185, 129, 0.1);
+    line-height: 1;
+  }
+
+  .neon-digit {
+    display: inline-block;
+  }
+
+  /* Flicker animations — irregular timing per digit */
+  .neon-flicker-1 {
+    animation: flicker-1 4s ease-in-out infinite;
+  }
+
+  .neon-flicker-2 {
+    animation: flicker-2 6s ease-in-out infinite;
+  }
+
+  .neon-flicker-3 {
+    animation: flicker-3 5s ease-in-out infinite;
+  }
+
+  @keyframes flicker-1 {
+    0%, 100% { opacity: 1; }
+    4% { opacity: 0.3; }
+    6% { opacity: 1; }
+    7% { opacity: 0.5; }
+    8% { opacity: 1; }
+    60% { opacity: 1; }
+    62% { opacity: 0.4; }
+    63% { opacity: 1; }
+  }
+
+  @keyframes flicker-2 {
+    0%, 100% { opacity: 1; }
+    20% { opacity: 1; }
+    21% { opacity: 0.2; }
+    22% { opacity: 0.8; }
+    23% { opacity: 0.2; }
+    24% { opacity: 1; }
+    75% { opacity: 1; }
+    76% { opacity: 0.5; }
+    77% { opacity: 1; }
+  }
+
+  @keyframes flicker-3 {
+    0%, 100% { opacity: 1; }
+    40% { opacity: 1; }
+    41% { opacity: 0.4; }
+    42% { opacity: 1; }
+    43% { opacity: 0.3; }
+    44% { opacity: 0.8; }
+    45% { opacity: 1; }
+    88% { opacity: 1; }
+    89% { opacity: 0.5; }
+    90% { opacity: 1; }
+  }
+
+  /* Pulsing glow on the text */
+  @keyframes neon-pulse {
+    0%, 100% {
+      text-shadow:
+        0 0 7px rgba(16, 185, 129, 0.6),
+        0 0 20px rgba(16, 185, 129, 0.4),
+        0 0 40px rgba(16, 185, 129, 0.2),
+        0 0 80px rgba(16, 185, 129, 0.1);
+    }
+    50% {
+      text-shadow:
+        0 0 10px rgba(16, 185, 129, 0.8),
+        0 0 30px rgba(16, 185, 129, 0.5),
+        0 0 60px rgba(16, 185, 129, 0.3),
+        0 0 100px rgba(16, 185, 129, 0.15);
+    }
+  }
+
+  .neon-404 {
+    animation: neon-pulse 3s ease-in-out infinite;
+  }
+</style>

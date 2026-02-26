@@ -7,18 +7,25 @@ interface Env {
 }
 
 export default {
-  async email(message, env: Env) {
+  async email(message: ForwardableEmailMessage, env: Env) {
     await message.forward(env.DESTINATION_EMAIL || "d.guntermann@me.com");
   },
 
-  async fetch(request, env: Env) {
+  async fetch(request: Request, env: Env) {
     if (request.method !== "POST") {
       return new Response("Method Not Allowed", { status: 405 });
     }
 
-    let body;
+    interface MailBody {
+      name: string;
+      email: string;
+      message: string;
+      destination: string;
+    }
+
+    let body: MailBody;
     try {
-      body = await request.json();
+      body = await request.json() as MailBody;
     } catch {
       return Response.json({ error: "Invalid JSON" }, { status: 400 });
     }

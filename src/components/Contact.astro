@@ -18,7 +18,7 @@
           Have a project idea, a question, or just want to connect? Drop me a message.
         </p>
 
-        <form action="/api/contact" method="POST" class="flex flex-col gap-5">
+        <form action="/api/contact" method="POST" novalidate class="flex flex-col gap-5">
           <!-- Honeypot: hidden from real users, bots fill it in -->
           <input type="text" name="website" class="hidden" tabindex="-1" autocomplete="off" aria-label="Leave this field empty" />
 
@@ -29,10 +29,12 @@
               id="name"
               name="name"
               required
+              minlength="2"
               autocomplete="name"
               placeholder="Your name"
               class="contact-input w-full rounded-lg border border-gray-200 bg-white/80 px-4 py-2.5 text-sm text-[#1a1a1a] placeholder-gray-500 outline-none transition-all dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder-gray-500"
             />
+            <p class="field-hint" data-for="name"></p>
           </div>
 
           <div>
@@ -46,6 +48,7 @@
               placeholder="you@example.com"
               class="contact-input w-full rounded-lg border border-gray-200 bg-white/80 px-4 py-2.5 text-sm text-[#1a1a1a] placeholder-gray-500 outline-none transition-all dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder-gray-500"
             />
+            <p class="field-hint" data-for="email"></p>
           </div>
 
           <div>
@@ -55,14 +58,16 @@
               name="message"
               rows="4"
               required
+              minlength="10"
               autocomplete="off"
               placeholder="Your message..."
               class="contact-input w-full resize-none rounded-lg border border-gray-200 bg-white/80 px-4 py-2.5 text-sm text-[#1a1a1a] placeholder-gray-500 outline-none transition-all dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder-gray-500"
             ></textarea>
+            <p class="field-hint" data-for="message"></p>
           </div>
 
-          <!-- Cloudflare Turnstile Widget (Managed Mode - Invisible) -->
-          <div id="turnstile-container" class="hidden" data-sitekey="0x4AAAAAAChqv4YCfiRUPj3O" data-theme="auto" data-execution="managed" aria-label="CAPTCHA verification"></div>
+          <!-- Cloudflare Turnstile Widget (rendered explicitly on submit) -->
+          <div id="turnstile-container" class="hidden" data-sitekey="0x4AAAAAAChqv4YCfiRUPj3O" aria-label="CAPTCHA verification"></div>
 
           <button
             type="submit"
@@ -80,8 +85,10 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
           </svg>
         </div>
-        <h3 class="mb-2 font-mono text-xl font-bold text-[#1a1a1a] dark:text-white">Message Sent!</h3>
-        <p class="mb-6 text-gray-500 dark:text-gray-400">Thanks for reaching out. I'll get back to you soon.</p>
+        <h3 class="mb-3 font-mono text-lg font-bold text-emerald-600 dark:text-emerald-400">200 OK</h3>
+        <p class="mx-auto mb-6 max-w-md font-mono text-sm leading-relaxed text-gray-500 dark:text-gray-400">
+          Request received. Your message has been containerized and is queued for review. I'll ping you back soon.
+        </p>
         <button
           id="contact-send-another"
           class="font-mono text-sm text-emerald-600 transition-colors hover:text-emerald-500 dark:text-emerald-400 dark:hover:text-emerald-300"
@@ -128,6 +135,25 @@
   .contact-input:focus {
     border-color: #10b981;
     box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.15);
+  }
+
+  /* Validation hint text */
+  .field-hint {
+    min-height: 0;
+    max-height: 0;
+    overflow: hidden;
+    margin: 0;
+    padding: 0;
+    font-size: 0.75rem;
+    line-height: 1.4;
+    opacity: 0;
+    transition: max-height 0.25s ease, opacity 0.25s ease, margin 0.25s ease;
+  }
+
+  .field-hint.visible {
+    max-height: 2em;
+    opacity: 1;
+    margin-top: 0.375rem;
   }
 
   /* Moving border glow on typing */
@@ -193,18 +219,54 @@
     transform: translateY(-2px);
     box-shadow: 0 6px 20px rgba(5, 150, 105, 0.3);
   }
+
+  /* Loading dots bounce animation */
+  .loading-dots {
+    display: inline-flex;
+    gap: 3px;
+    margin-left: 4px;
+    vertical-align: middle;
+  }
+
+  .loading-dots span {
+    display: inline-block;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background-color: currentColor;
+    animation: dot-bounce 1.2s ease-in-out infinite;
+  }
+
+  .loading-dots span:nth-child(2) {
+    animation-delay: 0.15s;
+  }
+
+  .loading-dots span:nth-child(3) {
+    animation-delay: 0.3s;
+  }
+
+  @keyframes dot-bounce {
+    0%, 60%, 100% {
+      transform: translateY(0);
+      opacity: 0.4;
+    }
+    30% {
+      transform: translateY(-5px);
+      opacity: 1;
+    }
+  }
 </style>
 
 <script>
-  // Load Turnstile SDK dynamically
-  let turnstileLoaded = false;
-  let turnstile: typeof window.turnstile;
-
-  // Load Turnstile script
-  function loadTurnstile() {
-    if (turnstileLoaded) return;
-
-  <script type="module" defer src='https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit' is:inline></script>
+  declare global {
+    interface Window {
+      turnstile: {
+        render: (container: HTMLElement | string, options: Record<string, unknown>) => string;
+        execute: (container: HTMLElement | string | null, options?: Record<string, unknown>) => void;
+        remove: (widgetId: string) => void;
+        reset: (widgetId?: string) => void;
+      };
+    }
   }
 
   const form = document.querySelector<HTMLFormElement>("#contact form");
@@ -218,105 +280,133 @@
 
   const sitekey = container?.dataset.sitekey ?? "";
 
+  // ── Field hint helpers ──
+  const hints = new Map<string, HTMLParagraphElement>();
+  form?.querySelectorAll<HTMLParagraphElement>(".field-hint").forEach((el) => {
+    const fieldName = el.dataset.for;
+    if (fieldName) hints.set(fieldName, el);
+  });
+
+  function showHint(fieldName: string, message: string) {
+    const el = hints.get(fieldName);
+    if (!el) return;
+    el.textContent = message;
+    el.style.color = document.documentElement.classList.contains("dark")
+      ? "rgba(255, 255, 255, 0.45)"
+      : "rgba(0, 0, 0, 0.45)";
+    el.classList.add("visible");
+  }
+
+  function clearHint(fieldName: string) {
+    const el = hints.get(fieldName);
+    if (!el) return;
+    el.classList.remove("visible");
+  }
+
+  function clearAllHints() {
+    hints.forEach((_, name) => clearHint(name));
+  }
+
+  function validateField(field: HTMLInputElement | HTMLTextAreaElement): boolean {
+    const name = field.name;
+    const value = field.value.trim();
+
+    // Required check
+    if (field.hasAttribute("required") && !value) {
+      showHint(name, "Please fill out this field");
+      return false;
+    }
+
+    // Email format
+    if (field.type === "email" && value) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(value)) {
+        showHint(name, "Please enter a valid email address");
+        return false;
+      }
+    }
+
+    // Minlength
+    const minLen = field.getAttribute("minlength");
+    if (minLen && value.length > 0 && value.length < parseInt(minLen)) {
+      showHint(name, `At least ${minLen} characters needed`);
+      return false;
+    }
+
+    clearHint(name);
+    return true;
+  }
+
+  function validateAll(): boolean {
+    if (!form) return false;
+    let valid = true;
+    const fields = form.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>("input:not([type=hidden]):not([name=website]), textarea");
+    fields.forEach((field) => {
+      if (!validateField(field)) valid = false;
+    });
+    return valid;
+  }
+
+  // Validate on blur (after user leaves a field)
+  form?.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>("input:not([type=hidden]):not([name=website]), textarea").forEach((field) => {
+    field.addEventListener("blur", () => validateField(field));
+    // Clear hint as user types valid content
+    field.addEventListener("input", () => {
+      if (field.value.trim()) validateField(field);
+    });
+  });
+
   function getTurnstileTheme(): "dark" | "light" {
     return document.documentElement.classList.contains("dark") ? "dark" : "light";
   }
 
   function renderTurnstile() {
-    if (!container || !turnstile) return;
+    if (!container || !window.turnstile) return;
 
-    // In managed mode, we don't use a callback - we listen for the success event
-    turnstileWidgetId = turnstile.render(container, {
+    turnstileWidgetId = window.turnstile.render(container, {
       sitekey,
       theme: getTurnstileTheme(),
-      execution: 'managed',
-      'aria-label': 'CAPTCHA verification',
-      responseFields: true,
+      execution: "execute",
       callback: (token: string) => {
-        // In managed mode, add token to form programmatically
-        const existingToken = form?.querySelector<HTMLInputElement>("[name='cf-turnstile-response']");
-        if (existingToken) {
-          existingToken.value = token;
-        } else {
-          const tokenInput = document.createElement("input");
+        // Inject token into form and auto-submit
+        let tokenInput = form?.querySelector<HTMLInputElement>("[name='cf-turnstile-response']");
+        if (!tokenInput) {
+          tokenInput = document.createElement("input");
           tokenInput.type = "hidden";
           tokenInput.name = "cf-turnstile-response";
-          tokenInput.value = token;
           form?.appendChild(tokenInput);
         }
-
-        // Auto-submit the form when Turnstile is solved
-        form?.requestSubmit();
+        tokenInput.value = token;
+        container?.classList.add("hidden");
+        submitForm();
+      },
+      "error-callback": () => {
+        showError("CAPTCHA verification failed. Please try again.");
+        resetTurnstile();
+        const btn = form?.querySelector<HTMLButtonElement>("button[type=submit]");
+        if (btn) { btn.disabled = false; btn.innerHTML = "Send Message"; }
       },
     });
+
+    // Trigger the challenge immediately after rendering
+    window.turnstile.execute(container);
   }
 
-  // Initialize Turnstile on page load
-  loadTurnstile();
-
-  // Listen for successful Turnstile verification
-  window.addEventListener("turnstile-success", (event: any) => {
-    const token = event.detail?.token;
-    if (token) {
-      console.log("Turnstile verified successfully");
-
-      // Add token to form and auto-submit
-      const existingToken = form?.querySelector<HTMLInputElement>("[name='cf-turnstile-response']");
-      if (existingToken) {
-        existingToken.value = token;
-      } else {
-        const tokenInput = document.createElement("input");
-        tokenInput.type = "hidden";
-        tokenInput.name = "cf-turnstile-response";
-        tokenInput.value = token;
-        form?.appendChild(tokenInput);
-      }
-
-      // Hide Turnstile widget after success
-      container?.classList.add("hidden");
-
-      // Auto-submit the form
-      form?.requestSubmit();
-    }
-  });
-
-  // Listen for Turnstile errors
-  window.addEventListener("turnstile-error", (event: any) => {
-    console.error("Turnstile error:", event.detail?.error);
-    showError("CAPTCHA verification failed. Please try again.");
-
-    // Remove Turnstile widget on error so user can retry
+  function resetTurnstile() {
     if (turnstileWidgetId) {
       window.turnstile.remove(turnstileWidgetId);
       turnstileWidgetId = null;
     }
-
-    // Re-enable form
-    const btn = form?.querySelector<HTMLButtonElement>("button[type=submit]");
-    if (btn) {
-      btn.disabled = false;
-      btn.textContent = "Send Message";
-    }
-  });
-
-  function resetTurnstile() {
-    if (container && turnstileWidgetId) {
-      // Remove the widget
-      window.turnstile.remove(turnstileWidgetId);
-      turnstileWidgetId = null;
-      turnstileReady = false;
-    }
     if (container) {
-      // Clear container
       container.innerHTML = "";
       container.classList.add("hidden");
     }
+    turnstileReady = false;
   }
 
-  // Re-render Turnstile when user switches theme (if widget is currently shown)
+  // Re-render Turnstile when user switches theme (widget currently visible)
   window.addEventListener("theme-change", () => {
     if (!turnstileReady || !container || container.classList.contains("hidden")) return;
-    // Clear the DOM completely before re-rendering — reset() alone leaves the old widget in place
     container.innerHTML = "";
     turnstileWidgetId = null;
     renderTurnstile();
@@ -331,15 +421,17 @@
   sendAnother?.addEventListener("click", () => {
     successView?.classList.add("hidden");
     formView?.classList.remove("hidden");
+    clearAllHints();
   });
 
   async function submitForm() {
     if (!form) return;
 
     const btn = form.querySelector<HTMLButtonElement>("button[type=submit]");
+    const dotsHTML = '<span class="loading-dots"><span></span><span></span><span></span></span>';
     if (btn) {
       btn.disabled = true;
-      btn.textContent = "Sending...";
+      btn.innerHTML = `Sending${dotsHTML}`;
     }
 
     try {
@@ -351,6 +443,7 @@
       if (res.ok) {
         form.reset();
         card?.classList.remove("is-typing");
+        clearAllHints();
         // Show success view
         formView?.classList.add("hidden");
         successView?.classList.remove("hidden");
@@ -365,7 +458,7 @@
     } finally {
       if (btn) {
         btn.disabled = false;
-        btn.textContent = "Send Message";
+        btn.innerHTML = "Send Message";
       }
     }
   }
@@ -376,7 +469,10 @@
     if (!err) {
       err = document.createElement("p");
       err.id = "contact-error";
-      err.className = "mt-4 text-center text-sm text-red-600 dark:text-red-400";
+      err.className = "mt-4 text-center text-sm";
+      err.style.color = document.documentElement.classList.contains("dark")
+        ? "rgba(255, 255, 255, 0.5)"
+        : "rgba(0, 0, 0, 0.5)";
       form?.parentElement?.appendChild(err);
     }
     err.textContent = msg;
@@ -387,24 +483,24 @@
 
   form?.addEventListener("submit", (e) => {
     e.preventDefault();
-    if (!form.checkValidity()) {
-      form.reportValidity();
-      return;
-    }
 
-    // If Turnstile already solved, submit directly
-    const token = form.querySelector<HTMLInputElement>("[name='cf-turnstile-response']");
-    if (token?.value) {
-      submitForm();
-      return;
-    }
+    // Custom validation — no browser popups
+    if (!validateAll()) return;
 
-    // Show and render Turnstile on first click (only if not already shown)
-    if (container && !turnstileReady) {
-      container.classList.remove("hidden");
+    const btn = form.querySelector<HTMLButtonElement>("button[type=submit]");
+    const dotsHTML = '<span class="loading-dots"><span></span><span></span><span></span></span>';
+    if (btn) { btn.disabled = true; btn.innerHTML = `Verifying${dotsHTML}`; }
+
+    // Render Turnstile widget and immediately execute the challenge.
+    // The callback inside renderTurnstile() calls submitForm() on success.
+    if (!turnstileReady) {
+      container?.classList.remove("hidden");
       turnstileReady = true;
       renderTurnstile();
     }
-    // If turnstileReady but no token yet: widget is visible, user just needs to complete the challenge
+    // If already rendered (e.g. error retry), re-execute the challenge
+    else if (turnstileWidgetId) {
+      window.turnstile.execute(container!);
+    }
   });
 </script>

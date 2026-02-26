@@ -6,7 +6,7 @@ const categories = [
   },
   {
     label: "Development",
-    skills: ["Python", "JavaScript", "TypeScript", "Ruby on Rails", "HTML/CSS", "Astro", "Tailwind CSS", "SQL", "Git"],
+    skills: ["Python", "JavaScript", "TypeScript", "Ruby on Rails", "HTML/CSS", "Astro", "Tailwind CSS", "SQL", "Git", "Creative Frontend"],
   },
   {
     label: "Security & Networking",
@@ -14,7 +14,7 @@ const categories = [
   },
   {
     label: "Business & Tools",
-    skills: ["Project Management", "Agile", "Jira", "Confluence", "Figma", "Technical Writing"],
+    skills: ["Project Management", "Agile", "Jira", "Confluence", "Figma", "Technical Writing", "Creative AI"],
   },
 ];
 ---
@@ -28,7 +28,7 @@ const categories = [
           <p class="mb-3 text-xs font-medium uppercase tracking-wide text-emerald-600 dark:text-emerald-500">{cat.label}</p>
           <div class="flex flex-wrap gap-2">
             {cat.skills.map((skill) => (
-              <span class="glass rounded-full px-3 py-1 text-sm text-gray-600 dark:text-gray-400">
+              <span class="skill-pill rounded-full px-3 py-1 text-sm text-gray-600 dark:text-gray-400">
                 {skill}
               </span>
             ))}
