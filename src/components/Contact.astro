@@ -66,8 +66,13 @@
             <p class="field-hint" data-for="message"></p>
           </div>
 
-          <!-- Cloudflare Turnstile Widget (rendered explicitly on submit) -->
-          <div id="turnstile-container" class="hidden" data-sitekey="0x4AAAAAAChqv4YCfiRUPj3O" aria-label="CAPTCHA verification"></div>
+          <!-- Cloudflare Turnstile (invisible, pre-rendered on page load) -->
+          <div
+            id="turnstile-container"
+            data-sitekey="0x4AAAAAAChqv4YCfiRUPj3O"
+            aria-hidden="true"
+            style="position:absolute;width:0;height:0;overflow:hidden;pointer-events:none"
+          ></div>
 
           <button
             type="submit"
@@ -75,6 +80,12 @@
           >
             Send Message
           </button>
+
+          <!-- Turnstile verification status badge -->
+          <div id="turnstile-status" class="turnstile-badge turnstile-badge--pending" aria-live="polite">
+            <span class="turnstile-badge-dot"></span>
+            <span class="turnstile-badge-text font-mono">protected by cloudflare turnstile</span>
+          </div>
         </form>
       </div>
 
@@ -240,6 +251,58 @@
       transform: translateY(-3px);
     }
   }
+
+  /* Turnstile verification badge */
+  .turnstile-badge {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.375rem;
+    margin-top: 0.5rem;
+    opacity: 0;
+    transition: opacity 0.6s ease;
+  }
+
+  .turnstile-badge.is-visible {
+    opacity: 1;
+  }
+
+  .turnstile-badge-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    transition: background-color 0.4s ease, box-shadow 0.4s ease;
+  }
+
+  .turnstile-badge-text {
+    font-size: 0.65rem;
+    letter-spacing: 0.02em;
+    color: rgba(0, 0, 0, 0.35);
+  }
+
+  :global(.dark) .turnstile-badge-text {
+    color: rgba(255, 255, 255, 0.3);
+  }
+
+  /* Pending state: amber pulsing dot */
+  .turnstile-badge--pending .turnstile-badge-dot {
+    background-color: #f59e0b;
+    box-shadow: 0 0 4px rgba(245, 158, 11, 0.5);
+    animation: badgePulse 2s ease-in-out infinite;
+  }
+
+  /* Verified state: emerald dot */
+  .turnstile-badge--verified .turnstile-badge-dot {
+    background-color: #10b981;
+    box-shadow: 0 0 4px rgba(16, 185, 129, 0.4);
+    animation: none;
+  }
+
+  @keyframes badgePulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
 </style>
 
 <script>
@@ -260,10 +323,34 @@
   const formView = document.getElementById("contact-form-view");
   const successView = document.getElementById("contact-success-view");
   const sendAnother = document.getElementById("contact-send-another");
-  let turnstileReady = false;
-  let turnstileWidgetId: string | null = null;
 
   const sitekey = container?.dataset.sitekey ?? "";
+
+  // ── Turnstile token management ──
+  let turnstileWidgetId: string | null = null;
+  let currentToken: string | null = null;
+  let tokenTimestamp = 0;
+  const TOKEN_REFRESH_MS = 270_000; // 4.5 min (tokens expire at 5 min)
+  let refreshTimer: ReturnType<typeof setInterval> | null = null;
+
+  // ── Turnstile verification badge ──
+  const badge = document.getElementById("turnstile-status");
+  const badgeText = badge?.querySelector<HTMLSpanElement>(".turnstile-badge-text");
+
+  function setBadgeState(state: "pending" | "verified" | "hidden") {
+    if (!badge) return;
+    if (state === "hidden") {
+      badge.classList.remove("is-visible");
+      return;
+    }
+    badge.classList.remove("turnstile-badge--pending", "turnstile-badge--verified");
+    badge.classList.add(`turnstile-badge--${state}`, "is-visible");
+    if (badgeText) {
+      badgeText.textContent = state === "verified"
+        ? "verified \u00b7 cloudflare turnstile"
+        : "protected by cloudflare turnstile";
+    }
+  }
 
   // ── Field hint helpers ──
   const hints = new Map<string, HTMLParagraphElement>();
@@ -341,61 +428,102 @@
     });
   });
 
+  // ── Invisible Turnstile: pre-render on page load ──
+
   function getTurnstileTheme(): "dark" | "light" {
     return document.documentElement.classList.contains("dark") ? "dark" : "light";
   }
 
-  function renderTurnstile() {
+  function initTurnstile() {
     if (!container || !window.turnstile) return;
-
-    turnstileWidgetId = window.turnstile.render(container, {
-      sitekey,
-      theme: getTurnstileTheme(),
-      execution: "execute",
-      callback: (token: string) => {
-        // Inject token into form and auto-submit
-        let tokenInput = form?.querySelector<HTMLInputElement>("[name='cf-turnstile-response']");
-        if (!tokenInput) {
-          tokenInput = document.createElement("input");
-          tokenInput.type = "hidden";
-          tokenInput.name = "cf-turnstile-response";
-          form?.appendChild(tokenInput);
-        }
-        tokenInput.value = token;
-        container?.classList.add("hidden");
-        submitForm();
-      },
-      "error-callback": () => {
-        showError("CAPTCHA verification failed. Please try again.");
-        resetTurnstile();
-        const btn = form?.querySelector<HTMLButtonElement>("button[type=submit]");
-        if (btn) { btn.disabled = false; btn.innerHTML = "Send Message"; }
-      },
-    });
-
-    // Trigger the challenge immediately after rendering
-    window.turnstile.execute(container);
+    setBadgeState("pending");
+    try {
+      turnstileWidgetId = window.turnstile.render(container, {
+        sitekey,
+        theme: getTurnstileTheme(),
+        callback: (token: string) => {
+          currentToken = token;
+          tokenTimestamp = Date.now();
+          setBadgeState("verified");
+        },
+        "error-callback": () => {
+          // Turnstile challenge failed (e.g. blocked by extension) — degrade gracefully
+          currentToken = null;
+          setBadgeState("hidden");
+        },
+        "expired-callback": () => {
+          currentToken = null;
+          setBadgeState("pending");
+          refreshToken();
+        },
+      });
+    } catch {
+      // Turnstile render failed — form will submit without token
+      setBadgeState("hidden");
+    }
   }
 
-  function resetTurnstile() {
-    if (turnstileWidgetId) {
+  function refreshToken() {
+    if (!window.turnstile || !turnstileWidgetId) return;
+    setBadgeState("pending");
+    try {
+      window.turnstile.reset(turnstileWidgetId);
+    } catch {
+      // Silent fail — token will be null, form submits without it
+      setBadgeState("hidden");
+    }
+  }
+
+  function startTokenRefresh() {
+    if (refreshTimer) clearInterval(refreshTimer);
+    refreshTimer = setInterval(() => {
+      if (currentToken && Date.now() - tokenTimestamp >= TOKEN_REFRESH_MS) {
+        refreshToken();
+      }
+    }, 30_000); // Check every 30s
+  }
+
+  // Poll for Turnstile API (loaded async/defer) then init
+  function waitForTurnstile() {
+    if (window.turnstile) {
+      initTurnstile();
+      startTokenRefresh();
+      return;
+    }
+    setBadgeState("pending");
+    let elapsed = 0;
+    const poll = setInterval(() => {
+      elapsed += 200;
+      if (window.turnstile) {
+        clearInterval(poll);
+        initTurnstile();
+        startTokenRefresh();
+      } else if (elapsed >= 10_000) {
+        // Turnstile API never loaded — give up, form works without it
+        clearInterval(poll);
+        setBadgeState("hidden");
+      }
+    }, 200);
+  }
+
+  waitForTurnstile();
+
+  // Re-render Turnstile when user switches theme
+  window.addEventListener("theme-change", () => {
+    if (!turnstileWidgetId || !container || !window.turnstile) return;
+    try {
       window.turnstile.remove(turnstileWidgetId);
       turnstileWidgetId = null;
+      currentToken = null;
+      setBadgeState("pending");
+      initTurnstile();
+    } catch {
+      // Silent fail — current token stays null
+      setBadgeState("hidden");
     }
-    if (container) {
-      container.innerHTML = "";
-      container.classList.add("hidden");
-    }
-    turnstileReady = false;
-  }
-
-  // Re-render Turnstile when user switches theme (widget currently visible)
-  window.addEventListener("theme-change", () => {
-    if (!turnstileReady || !container || container.classList.contains("hidden")) return;
-    container.innerHTML = "";
-    turnstileWidgetId = null;
-    renderTurnstile();
   });
+
+  // ── Form interactions ──
 
   // Typing detection — activate glow, stays until submit
   form?.addEventListener("input", () => {
@@ -408,6 +536,18 @@
     formView?.classList.remove("hidden");
     clearAllHints();
   });
+
+  function attachToken() {
+    if (!form || !currentToken) return;
+    let tokenInput = form.querySelector<HTMLInputElement>("[name='cf-turnstile-response']");
+    if (!tokenInput) {
+      tokenInput = document.createElement("input");
+      tokenInput.type = "hidden";
+      tokenInput.name = "cf-turnstile-response";
+      form.appendChild(tokenInput);
+    }
+    tokenInput.value = currentToken;
+  }
 
   async function submitForm() {
     if (!form) return;
@@ -432,8 +572,8 @@
         // Show success view
         formView?.classList.add("hidden");
         successView?.classList.remove("hidden");
-        // Fully destroy Turnstile widget so the used token is gone
-        resetTurnstile();
+        // Refresh token for potential next submission
+        refreshToken();
       } else {
         const data = await res.json().catch(() => ({})) as { error?: string };
         showError(data.error || "Something went wrong. Please try again.");
@@ -472,20 +612,10 @@
     // Custom validation — no browser popups
     if (!validateAll()) return;
 
-    const btn = form.querySelector<HTMLButtonElement>("button[type=submit]");
-    const dotsHTML = '<span class="dot dot-1">.</span><span class="dot dot-2">.</span><span class="dot dot-3">.</span>';
-    if (btn) { btn.disabled = true; btn.innerHTML = `Verifying${dotsHTML}`; }
+    // Attach Turnstile token if available (invisible — no "Verifying" state)
+    attachToken();
 
-    // Render Turnstile widget and immediately execute the challenge.
-    // The callback inside renderTurnstile() calls submitForm() on success.
-    if (!turnstileReady) {
-      container?.classList.remove("hidden");
-      turnstileReady = true;
-      renderTurnstile();
-    }
-    // If already rendered (e.g. error retry), re-execute the challenge
-    else if (turnstileWidgetId) {
-      window.turnstile.execute(container!);
-    }
+    // Submit directly
+    submitForm();
   });
 </script>

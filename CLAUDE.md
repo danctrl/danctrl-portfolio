@@ -56,6 +56,8 @@ This is a personal portfolio website for **Daniel Guntermann** (`danctrl.dev`), 
 - **Styling:** Tailwind CSS with dark mode support (class strategy)
 - **Animations:** CSS animations + Intersection Observer API (keep it lightweight, no heavy libraries)
 - **Deployment:** Cloudflare Pages (auto-deploy from GitHub on push to `main`)
+- **Bot Protection:** Cloudflare Turnstile (invisible mode, pre-rendered on page load)
+- **Contact Form Backend:** Cloudflare Pages Function (`functions/api/contact.ts`) + Service Binding to `danctrl-portfolio-mailer` Worker
 - **Language:** TypeScript where applicable
 - **No:** React, Vue, or other UI frameworks unless absolutely needed for a specific interactive component
 
@@ -155,8 +157,13 @@ The design is inspired by a "Build Log" aesthetic – minimal, utilitarian, make
    - Each card: image/screenshot, title, short description, tech tags, link
 
 7. **Contact**
-   - Email, GitHub, LinkedIn
-   - Simple and clean, no unnecessary form
+   - Contact form with name, email, message fields
+   - Cloudflare Turnstile (invisible) for bot protection — pre-rendered on page load, token auto-refreshes every 4.5 min
+   - Custom verification badge below submit button: amber pulsing dot while verifying, green dot + "verified" on success, hidden on failure
+   - Graceful degradation: form submits without Turnstile token if challenge fails (e.g. browser extensions blocking iframes)
+   - Honeypot hidden field for additional bot filtering
+   - Server-side: Cloudflare Pages Function validates + forwards to mailer Worker via Service Binding
+   - Client-side validation with inline hints (no browser popups, `novalidate` on form)
 
 8. **Footer**
    - Minimal: copyright, "Built with Astro", social links

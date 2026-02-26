@@ -9,7 +9,7 @@ Built as a single-page site with a "build log" aesthetic: minimal, dark-first, t
 - **[Astro](https://astro.build)** — static site generation
 - **[Tailwind CSS v4](https://tailwindcss.com)** — utility-first styling
 - **Cloudflare Pages** — hosting & edge functions
-- **Cloudflare Turnstile** — bot-resistant contact form
+- **Cloudflare Turnstile** — invisible bot protection for contact form (pre-rendered on page load)
 - **TypeScript** — throughout
 
 ## Local Development
