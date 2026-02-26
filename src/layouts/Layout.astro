@@ -9,7 +9,7 @@ interface Props {
 }
 
 const {
-    title = "Daniel Guntermann — DevOps, AI & Infrastructure | danctrl.dev",
+    title = "Daniel Guntermann — DevOps & AI Infrastructure | danctrl.dev",
     description = "DevOps enthusiast based in Berlin – infrastructure automation, containerization, and AI-driven tooling. Bridging tech with business.",
     minimal = false,
 } = Astro.props;
@@ -33,6 +33,9 @@ const ogImageWide = new URL("/og-image-wide.jpg", "https://danctrl.dev");
         <meta name="author" content="Daniel Guntermann" />
         <meta name="description" content={description} />
         <meta name="generator" content={Astro.generator} />
+        <meta property="article:published_time" content="2025-06-01" />
+        <meta property="article:modified_time" content="2026-02-26" />
+        <meta property="article:author" content="Daniel Guntermann" />
         <link rel="canonical" href={canonicalURL.href} />
         <!--
           OG images: two versions for different platforms.
@@ -346,7 +349,7 @@ const ogImageWide = new URL("/og-image-wide.jpg", "https://danctrl.dev");
         )}
 
         <!-- Cursor glow (desktop only) -->
-        <Astronaut />
+        {!minimal && <Astronaut />}
         <main class="relative z-10 isolate">
             <div
                 id="cursor-glow"

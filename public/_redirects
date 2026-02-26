@@ -5,5 +5,11 @@
 /post-sitemap.xml /sitemap-index.xml 301
 /page-sitemap.xml /sitemap-index.xml 301
 
+# E-E-A-T: canonical section routes
+/about /#about 301
+/about/ /#about 301
+/contact /#contact 301
+/contact/ /#contact 301
+
 # Catch-all: unknown routes → custom 404 page
 /* /404 404
