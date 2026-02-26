@@ -9,7 +9,7 @@ interface Props {
 }
 
 const {
-    title = "danctrl.dev",
+    title = "Daniel Guntermann — DevOps, AI & Infrastructure | danctrl.dev",
     description = "DevOps enthusiast based in Berlin – infrastructure automation, containerization, and AI-driven tooling. Bridging tech with business.",
     minimal = false,
 } = Astro.props;
@@ -56,36 +56,84 @@ const ogImageWide = new URL("/og-image-wide.jpg", "https://danctrl.dev");
         <!-- Preload self-hosted fonts -->
         <link rel="preload" as="font" type="font/woff2" href="/fonts/jetbrains-mono-400.woff2" crossorigin />
         <link rel="preload" as="font" type="font/woff2" href="/fonts/poppins-400.woff2" crossorigin />
+        {!minimal && (
+        <>
         <!-- Preload LCP images -->
         <link rel="preload" as="image" href="/astronaut.svg" />
         <link rel="preload" as="image" href="/avatar.webp" type="image/webp" />
         <link rel="preload" as="image" href="/homelab.webp" type="image/webp" />
+        <link rel="preload" as="image" href="/portfolio_new.webp" type="image/webp" />
+        </>
+        )}
         <title>{title}</title>
         <!-- JSON-LD Structured Data -->
-        <script type="application/ld+json">
-        {
+        {!minimal ? (
+        <script type="application/ld+json" set:html={JSON.stringify({
           "@context": "https://schema.org",
-          "@type": "Person",
-          "name": "Daniel Guntermann",
-          "url": "https://danctrl.dev",
-          "jobTitle": "DevOps Engineer",
-          "description": "Product-minded technologist based in Berlin – infrastructure automation, containerization, and AI-driven tooling. Bridging technical systems with business strategy.",
-          "address": {
-            "@type": "PostalAddress",
-            "addressLocality": "Berlin",
-            "addressCountry": "DE"
-          },
-          "sameAs": [
-            "https://github.com/danctrl",
-            "https://linkedin.com/in/danielguntermann"
-          ],
-          "knowsAbout": ["DevOps", "Podman", "RHEL", "Traefik", "Infrastructure Automation", "Containerization", "CI/CD", "Cybersecurity", "AI"]
-        }
-        </script>
+          "@graph": [
+            {
+              "@type": "WebSite",
+              "name": "danctrl.dev",
+              "url": "https://danctrl.dev",
+              "description": description,
+              "author": { "@id": "https://danctrl.dev/#person" },
+              "datePublished": "2025-06-01",
+              "dateModified": "2026-02-26"
+            },
+            {
+              "@type": "Person",
+              "@id": "https://danctrl.dev/#person",
+              "name": "Daniel Guntermann",
+              "url": "https://danctrl.dev",
+              "jobTitle": "DevOps Engineer",
+              "description": "Product-minded technologist based in Berlin – infrastructure automation, containerization, and AI-driven tooling. Bridging technical systems with business strategy.",
+              "address": {
+                "@type": "PostalAddress",
+                "addressLocality": "Berlin",
+                "addressCountry": "DE"
+              },
+              "sameAs": [
+                "https://github.com/danctrl",
+                "https://linkedin.com/in/danielguntermann",
+                "https://t.me/danielguntagram"
+              ],
+              "knowsAbout": ["DevOps", "Podman", "RHEL", "Traefik", "Infrastructure Automation", "Containerization", "CI/CD", "Cybersecurity", "AI"]
+            },
+            {
+              "@type": "AboutPage",
+              "name": "About Daniel Guntermann",
+              "url": "https://danctrl.dev/#about",
+              "mainEntity": { "@id": "https://danctrl.dev/#person" }
+            },
+            {
+              "@type": "ContactPage",
+              "name": "Contact Daniel Guntermann",
+              "url": "https://danctrl.dev/#contact"
+            }
+          ]
+        })} />
+        ) : (
+        <script type="application/ld+json" set:html={JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "WebPage",
+          "name": title,
+          "url": canonicalURL.href,
+          "description": description,
+          "datePublished": "2026-02-01",
+          "dateModified": "2026-02-26",
+          "author": {
+            "@type": "Person",
+            "name": "Daniel Guntermann",
+            "url": "https://danctrl.dev"
+          }
+        })} />
+        )}
+        {!minimal && (
         <script
             src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"
             async
             defer></script>
+        )}
         <!-- Prevent flash of wrong theme -->
         <script is:inline>
             (function () {
@@ -334,7 +382,7 @@ const ogImageWide = new URL("/og-image-wide.jpg", "https://danctrl.dev");
                                 class="text-gray-400 underline transition-colors hover:text-emerald-600 dark:text-gray-500 dark:hover:text-emerald-400"
                                 >rocket fuel</a
                             > in Berlin &middot; <a
-                                href="/privacy"
+                                href="/privacy/"
                                 class="text-gray-400 transition-colors hover:text-emerald-600 dark:text-gray-500 dark:hover:text-emerald-400"
                                 >Privacy</a
                             >

@@ -2,7 +2,7 @@
 import Layout from "../layouts/Layout.astro";
 ---
 
-<Layout minimal title="Privacy — danctrl.dev" description="Privacy policy for danctrl.dev — what data is collected and how it's handled.">
+<Layout minimal title="Privacy Policy — danctrl.dev | Data & Cookie Information" description="Privacy policy for danctrl.dev — learn what data is collected, how third-party services like Cloudflare Analytics and Turnstile work, and how your information is handled.">
   <section class="flex min-h-screen items-start justify-center px-6 pt-16 pb-24">
     <div class="w-full max-w-2xl">
       <!-- Back to Home button -->
@@ -21,26 +21,48 @@ import Layout from "../layouts/Layout.astro";
 
         <div class="space-y-6 text-sm leading-relaxed text-gray-500 dark:text-gray-400">
           <p>
-            This is the personal portfolio of <strong class="text-[#1a1a1a] dark:text-white">Daniel Guntermann</strong>. This site does not collect personal data beyond what is technically necessary.
+            This is the personal portfolio of <strong class="text-[#1a1a1a] dark:text-white">Daniel Guntermann</strong>. This site is designed with privacy in mind and does not collect personal data beyond what is technically necessary to operate. No tracking cookies are used, no advertising networks are loaded, and no personal data is sold or shared with third parties.
           </p>
+
+          <div>
+            <h2 class="mb-2 font-mono text-sm font-semibold text-[#1a1a1a] dark:text-white">Data controller</h2>
+            <p>
+              The person responsible for data processing on this website is Daniel Guntermann, based in Berlin, Germany. If you have any questions about how your data is handled, you can reach out via the <a href="/#contact" class="text-emerald-600 underline transition-colors hover:text-emerald-500 dark:text-emerald-400 dark:hover:text-emerald-300">contact form</a> on the homepage.
+            </p>
+          </div>
 
           <div>
             <h2 class="mb-2 font-mono text-sm font-semibold text-[#1a1a1a] dark:text-white">Third-party services</h2>
             <ul class="space-y-2">
-              <li><strong class="text-[#1a1a1a] dark:text-white">Cloudflare Analytics</strong> &mdash; cookie-free, privacy-friendly analytics. No personal data stored.</li>
-              <li><strong class="text-[#1a1a1a] dark:text-white">Cloudflare Turnstile</strong> &mdash; bot protection on the contact form. No tracking cookies.</li>
-              <li><strong class="text-[#1a1a1a] dark:text-white">Fonts</strong> &mdash; JetBrains Mono and Poppins are self-hosted on this site. No requests are made to Google Fonts or any external font CDN.</li>
+              <li><strong class="text-[#1a1a1a] dark:text-white">Cloudflare Analytics</strong> &mdash; this site uses Cloudflare Web Analytics, a cookie-free and privacy-friendly analytics solution. It collects aggregated, anonymous usage data such as page views, referrers, and browser information. No personal data is stored or processed, and no tracking cookies are set.</li>
+              <li><strong class="text-[#1a1a1a] dark:text-white">Cloudflare Turnstile</strong> &mdash; the contact form on this site is protected by Cloudflare Turnstile, a privacy-preserving bot detection service. It does not use tracking cookies and does not collect personal data beyond what is needed to verify that the visitor is human.</li>
+              <li><strong class="text-[#1a1a1a] dark:text-white">Fonts</strong> &mdash; JetBrains Mono and Poppins are self-hosted on this site. No requests are made to Google Fonts or any external font CDN, ensuring your IP address is never shared with third-party font providers.</li>
             </ul>
           </div>
 
           <div>
             <h2 class="mb-2 font-mono text-sm font-semibold text-[#1a1a1a] dark:text-white">Contact form</h2>
-            <p>Data submitted via the contact form (name, email, message) is only used to respond to your enquiry and not stored beyond that.</p>
+            <p>When you submit a message through the <a href="/#contact" class="text-emerald-600 underline transition-colors hover:text-emerald-500 dark:text-emerald-400 dark:hover:text-emerald-300">contact form</a>, the data you provide (name, email address, and message) is transmitted securely and used solely to respond to your enquiry. This data is not stored in a database, not used for marketing purposes, and not shared with any third party. The email is delivered via a Cloudflare Worker and is not retained after delivery.</p>
           </div>
 
           <div>
             <h2 class="mb-2 font-mono text-sm font-semibold text-[#1a1a1a] dark:text-white">Local storage</h2>
-            <p>A single <code class="rounded bg-gray-100 px-1 dark:bg-white/10">theme</code> key is stored in <code class="rounded bg-gray-100 px-1 dark:bg-white/10">localStorage</code> to remember your light/dark mode preference. No tracking cookies are used.</p>
+            <p>A single <code class="rounded bg-gray-100 px-1 dark:bg-white/10">theme</code> key is stored in your browser's <code class="rounded bg-gray-100 px-1 dark:bg-white/10">localStorage</code> to remember your light or dark mode preference. This value never leaves your browser and is not transmitted to any server. No tracking cookies are used anywhere on this site.</p>
+          </div>
+
+          <div>
+            <h2 class="mb-2 font-mono text-sm font-semibold text-[#1a1a1a] dark:text-white">External links</h2>
+            <p>This site may contain links to external websites such as GitHub, LinkedIn, and Telegram. Once you follow a link to another site, this privacy policy no longer applies. Please review the privacy policies of those external services for information about how they handle your data.</p>
+          </div>
+
+          <div>
+            <h2 class="mb-2 font-mono text-sm font-semibold text-[#1a1a1a] dark:text-white">Your rights</h2>
+            <p>Under the General Data Protection Regulation (GDPR), you have the right to access, correct, or delete any personal data that may be associated with you. Since this site does not store personal data in any database, there is typically nothing to delete. However, if you have submitted a contact form message and wish to have it removed, please reach out and the request will be honoured promptly.</p>
+          </div>
+
+          <div>
+            <h2 class="mb-2 font-mono text-sm font-semibold text-[#1a1a1a] dark:text-white">Changes to this policy</h2>
+            <p>This privacy policy may be updated from time to time to reflect changes in services or legal requirements. The date of the most recent update is noted below. Continued use of the site after changes constitutes acceptance of the updated policy.</p>
           </div>
 
           <p class="text-xs text-gray-400 dark:text-gray-600">Last updated: February 2026</p>
